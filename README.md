@@ -1,5 +1,7 @@
 # 🖥️ Linux Stats Display
 
+> 📐 Optimized for 1280×800 displays (e.g., small dedicated monitors). You can edit `stats.conf` and `rings.lua` to adapt to other resolutions. For a rotated layout, see the `landscape` branch.
+
 A full-screen Conky dashboard to monitor CPU, GPU, RAM, network, and disk stats on a dedicated display (e.g., a third monitor). Features include graphical segmented rings, real-time graphs, temperature-based color coding, and system info.
 
 ---
@@ -59,6 +61,9 @@ Make sure your config and ring scripts are in place:
 ---
 
 ## 🧩 Features
+
+- 📐 Default resolution: **1280×800**
+- 🔄 Optional landscape layout available in the [`landscape` branch](https://github.com/yourrepo/linux-stats-display/tree/landscape)
 
 - ✅ Segmented **ring graphs** for CPU, RAM, GPU usage and temperature
 - ✅ **Dynamic color coding** (green → orange → red) based on usage
