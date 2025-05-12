@@ -9,7 +9,7 @@ settings_table = {
         bg_alpha=0.2,
         fg_colour=0x00ff00,
         fg_alpha=0.8,
-        x=100, y=230,
+        x=100, y=215,
         radius=60,
         thickness=10,
         start_angle = 135,
@@ -24,7 +24,7 @@ settings_table = {
         bg_alpha=0.2,
         fg_colour=0xff5555,
         fg_alpha=0.8,
-        x=100, y=230,
+        x=100, y=215,
         radius=45,
         thickness=8,
         start_angle = 135,
@@ -40,7 +40,7 @@ settings_table = {
         bg_alpha=0.2,
         fg_colour=0x00ffff,
         fg_alpha=0.8,
-        x=250, y=230,
+        x=250, y=215,
         radius=60,
         thickness=10,
         start_angle = 135,
@@ -56,7 +56,7 @@ settings_table = {
         bg_alpha=0.2,
         fg_colour=0xff9900,
         fg_alpha=0.8,
-        x=400, y=230,
+        x=400, y=215,
         radius=60,
         thickness=10,
         start_angle = 135,
@@ -71,7 +71,7 @@ settings_table = {
         bg_alpha=0.2,
         fg_colour=0xff5555,
         fg_alpha=0.8,
-        x=400, y=230,
+        x=400, y=215,
         radius=45,
         thickness=8,
         start_angle = 135,
@@ -148,10 +148,6 @@ function conky_draw_ring_stats()
             draw_segmented_ring(cr, value / pt['max'], pt)
 
             draw_text(cr, pt['label'], pt['x'] - 40, pt['y'] - pt['radius'] - 20, 14, 0xffffff)
-
-            -- if pt['label'] and pt['label']:lower():find("temp") then
-            --     draw_text(cr, "Temp", pt['x'] - 20, pt['y'] + pt['radius'] + 45, 12, 0xaaaaaa)
-            -- end
         end
     end
 end
