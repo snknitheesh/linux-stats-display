@@ -19,7 +19,6 @@ settings_table = {
     {
         name='execi',
         arg='5 sensors | grep "Package id 0" | awk \'{print $4}\' | cut -c 2-3',
-        label='CPU Temp',
         max=100,
         bg_colour=0x444444,
         bg_alpha=0.2,
@@ -67,7 +66,6 @@ settings_table = {
     {
         name='execi',
         arg='5 nvidia-smi --query-gpu=temperature.gpu --format=csv,noheader,nounits',
-        label='GPU Temp',
         max=100,
         bg_colour=0x444444,
         bg_alpha=0.2,
