@@ -52,7 +52,6 @@ conky -c ~/.config/conky/stats.conf
 Make sure your config and ring scripts are in place:
 
 ```
-
 ~/.config/conky/stats.conf      # Main Conky config file
 ~/.config/conky/rings.lua       # Custom Lua drawing script
 ```
@@ -86,10 +85,3 @@ You can customize:
 - Fonts and colors (`stats.conf`)
 - Display interfaces (e.g., replace `wlp5s0` with your actual network adapter)
 - RAM/CPU/GPU display intervals
-
----
-
-## 📁 License
-
-MIT License — free to use, modify, and share.
-```
