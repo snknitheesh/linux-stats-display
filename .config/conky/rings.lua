@@ -1,5 +1,4 @@
 settings_table = {
-    -- CPU Usage
     {
         name='cpu',
         arg='cpu0',
@@ -9,13 +8,12 @@ settings_table = {
         bg_alpha=0.2,
         fg_colour=0x00ff00,
         fg_alpha=0.8,
-        x=100, y=215,
+        x=150, y=200,
         radius=60,
         thickness=10,
         start_angle = 135,
         end_angle = 405,
     },
-    -- CPU Temp
     {
         name='execi',
         arg='5 sensors | grep "Package id 0" | awk \'{print $4}\' | cut -c 2-3',
@@ -24,13 +22,12 @@ settings_table = {
         bg_alpha=0.2,
         fg_colour=0xff5555,
         fg_alpha=0.8,
-        x=100, y=215,
+        x=150, y=200,
         radius=45,
         thickness=8,
         start_angle = 135,
         end_angle = 405,
     },
-    -- RAM Usage
     {
         name='memperc',
         arg='',
@@ -40,13 +37,12 @@ settings_table = {
         bg_alpha=0.2,
         fg_colour=0x00ffff,
         fg_alpha=0.8,
-        x=250, y=215,
+        x=400, y=200,
         radius=60,
         thickness=10,
         start_angle = 135,
         end_angle = 405,
     },
-    -- GPU Usage
     {
         name='execi',
         arg='5 nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits',
@@ -56,13 +52,12 @@ settings_table = {
         bg_alpha=0.2,
         fg_colour=0xff9900,
         fg_alpha=0.8,
-        x=400, y=215,
+        x=650, y=200,
         radius=60,
         thickness=10,
         start_angle = 135,
         end_angle = 405,
     },
-    -- GPU Temp
     {
         name='execi',
         arg='5 nvidia-smi --query-gpu=temperature.gpu --format=csv,noheader,nounits',
@@ -71,13 +66,14 @@ settings_table = {
         bg_alpha=0.2,
         fg_colour=0xff5555,
         fg_alpha=0.8,
-        x=400, y=215,
+        x=650, y=200,
         radius=45,
         thickness=8,
         start_angle = 135,
         end_angle = 405,
     }
 }
+
 
 require 'cairo'
 
