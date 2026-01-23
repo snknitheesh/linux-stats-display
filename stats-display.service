@@ -1,0 +1,19 @@
+[Unit]
+Description=Linux Stats Display (Conky)
+After=graphical-session.target
+PartOf=graphical-session.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/workspaces/zozo_ws/linux-stats-display
+ExecStart=/usr/bin/conky -c %h/workspaces/zozo_ws/linux-stats-display/.config/conky/stats.conf
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+# Ensure display is available for conky
+Environment="DISPLAY=:0"
+
+[Install]
+WantedBy=graphical-session.target
