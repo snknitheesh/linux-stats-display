@@ -39,6 +39,33 @@ If you're using multiple monitors, you may need to adjust the display position. 
 xrandr | grep " connected"
 ```
 
+### Option 1: Run as systemd service (recommended)
+
+For automatic startup on boot and auto-restart on failure:
+
+```bash
+cd ~/workspaces/zozo_ws/linux-stats-display
+./install_service.sh
+```
+
+This will:
+- Install a user-level systemd service
+- Enable auto-start on login/reboot
+- Auto-restart if conky crashes
+- Enable user lingering for boot-time startup
+
+Useful service commands:
+
+```bash
+systemctl --user status stats-display.service      # Check status
+systemctl --user stop stats-display.service        # Stop
+systemctl --user start stats-display.service       # Start
+systemctl --user restart stats-display.service     # Restart
+journalctl --user -u stats-display.service -f      # View logs
+```
+
+### Option 2: Run manually
+
 Kill any running Conky instances first:
 
 ```bash
