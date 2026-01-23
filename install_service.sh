@@ -63,6 +63,24 @@ fi
 echo "Enabling user lingering (allows services to run at boot)..."
 sudo loginctl enable-linger "${USER}"
 
+# Check if conky is actually rendering
+sleep 2
+if systemctl --user is-active --quiet "${SERVICE_NAME}"; then
+    if journalctl --user -u "${SERVICE_NAME}" -n 20 | grep -q "drawing to created window"; then
+        echo "✓ Conky is running and rendering to display"
+    elif journalctl --user -u "${SERVICE_NAME}" -n 20 | grep -q "can't open display"; then
+        echo ""
+        echo "⚠ Warning: Display connection issue detected"
+        echo "Current DISPLAY in service: $(grep DISPLAY ~/.config/systemd/user/${SERVICE_NAME} | head -n1)"
+        echo "Your DISPLAY variable: ${DISPLAY}"
+        echo ""
+        echo "If conky is not visible, you may need to edit the DISPLAY variable in:"
+        echo "  ~/.config/systemd/user/${SERVICE_NAME}"
+        echo "Change 'Environment=\"DISPLAY=:1\"' to match your actual DISPLAY (${DISPLAY})"
+        echo "Then run: systemctl --user daemon-reload && systemctl --user restart ${SERVICE_NAME}"
+    fi
+fi
+
 echo
 echo "=== Installation Complete! ==="
 echo

@@ -4,8 +4,9 @@ After=graphical-session.target
 PartOf=graphical-session.target
 
 [Service]
-Type=simple
+Type=forking
 WorkingDirectory=%h/workspaces/zozo_ws/linux-stats-display
+# Conky will fork to background (background=true in config)
 ExecStart=/usr/bin/conky -c %h/workspaces/zozo_ws/linux-stats-display/.config/conky/stats.conf
 Restart=always
 RestartSec=5
@@ -13,7 +14,10 @@ StandardOutput=journal
 StandardError=journal
 
 # Ensure display is available for conky
-Environment="DISPLAY=:0"
+# Note: If conky doesn't appear, check your DISPLAY with: echo $DISPLAY
+# Update this line to match your system (common values: :0, :1, or :0.0)
+Environment="DISPLAY=:1"
+Environment="XAUTHORITY=%h/.Xauthority"
 
 [Install]
 WantedBy=graphical-session.target
