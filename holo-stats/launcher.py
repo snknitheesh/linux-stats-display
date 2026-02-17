@@ -226,8 +226,8 @@ class StatsCollector:
         cpu_freq = self._exec("grep 'cpu MHz' /proc/cpuinfo | head -1 | awk '{printf \"%.2f\", $4/1000}'")
         cpu_cores = self._exec("nproc")
 
-        # Top processes (exclude self)
-        top_raw = self._exec("ps -eo comm,%cpu --sort=-%cpu --no-headers | awk '!/conky|python3|launcher/{if(++n<=3)print $1,$2}'")
+        # Top processes (exclude self and related processes)
+        top_raw = self._exec("ps -eo comm,%cpu --sort=-%cpu --no-headers | awk '!/conky|python3|launcher|WebKitWebProces/{if(++n<=3)print $1,$2}'")
         top_procs = []
         for line in top_raw.split('\n'):
             parts = line.strip().split()
