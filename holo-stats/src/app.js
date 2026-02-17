@@ -206,6 +206,87 @@ class BackgroundScene {
       this.scene.add(group);
       this.brightStars.push({ group, halo, rays, baseOpacity: haloMat.opacity, rayBaseOpacity: rayMat.opacity, phase: Math.random() * Math.PI * 2 });
     }
+
+    // Additional distant stars in the middle area (behind overlay, deep z)
+    for (let i = 0; i < 40; i++) {
+      const col = colors[Math.floor(Math.random() * colors.length)];
+      const size = 2 + Math.random() * 4;
+      const haloSize = size * 4 + Math.random() * 10;
+
+      const group = new THREE.Group();
+      const px = (Math.random() - 0.5) * 1200;
+      const py = (Math.random() - 0.5) * 800;
+      const pz = -1800 - Math.random() * 1500;
+      group.position.set(px, py, pz);
+
+      const sc = document.createElement('canvas');
+      sc.width = 64; sc.height = 64;
+      const sctx = sc.getContext('2d');
+      const sg = sctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+      sg.addColorStop(0, `rgba(${col.core[0]}, ${col.core[1]}, ${col.core[2]}, 1)`);
+      sg.addColorStop(0.15, `rgba(${col.core[0]}, ${col.core[1]}, ${col.core[2]}, 0.8)`);
+      sg.addColorStop(0.4, `rgba(${col.glow[0]}, ${col.glow[1]}, ${col.glow[2]}, 0.3)`);
+      sg.addColorStop(0.7, `rgba(${col.glow[0]}, ${col.glow[1]}, ${col.glow[2]}, 0.05)`);
+      sg.addColorStop(1, 'rgba(0,0,0,0)');
+      sctx.fillStyle = sg;
+      sctx.fillRect(0, 0, 64, 64);
+      const starGeo = new THREE.SphereGeometry(size, 12, 8);
+      const starMat = new THREE.MeshBasicMaterial({
+        map: new THREE.CanvasTexture(sc), transparent: true, opacity: 0.6 + Math.random() * 0.3,
+        blending: THREE.AdditiveBlending, depthWrite: false,
+      });
+      group.add(new THREE.Mesh(starGeo, starMat));
+
+      const hc = document.createElement('canvas');
+      hc.width = 64; hc.height = 64;
+      const hctx = hc.getContext('2d');
+      const hg = hctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+      hg.addColorStop(0, `rgba(${col.glow[0]}, ${col.glow[1]}, ${col.glow[2]}, 0.5)`);
+      hg.addColorStop(0.3, `rgba(${col.glow[0]}, ${col.glow[1]}, ${col.glow[2]}, 0.15)`);
+      hg.addColorStop(0.7, `rgba(${col.glow[0]}, ${col.glow[1]}, ${col.glow[2]}, 0.03)`);
+      hg.addColorStop(1, 'rgba(0,0,0,0)');
+      hctx.fillStyle = hg;
+      hctx.fillRect(0, 0, 64, 64);
+      const haloMat2 = new THREE.SpriteMaterial({
+        map: new THREE.CanvasTexture(hc), transparent: true, opacity: 0.5 + Math.random() * 0.3,
+        blending: THREE.AdditiveBlending, depthWrite: false,
+      });
+      const halo = new THREE.Sprite(haloMat2);
+      halo.scale.set(haloSize, haloSize, 1);
+      group.add(halo);
+
+      const rc = document.createElement('canvas');
+      rc.width = 128; rc.height = 128;
+      const rctx = rc.getContext('2d');
+      rctx.globalCompositeOperation = 'lighter';
+      const hrg = rctx.createLinearGradient(0, 64, 128, 64);
+      hrg.addColorStop(0, 'rgba(0,0,0,0)');
+      hrg.addColorStop(0.3, `rgba(${col.glow[0]}, ${col.glow[1]}, ${col.glow[2]}, 0.08)`);
+      hrg.addColorStop(0.5, `rgba(${col.core[0]}, ${col.core[1]}, ${col.core[2]}, 0.4)`);
+      hrg.addColorStop(0.7, `rgba(${col.glow[0]}, ${col.glow[1]}, ${col.glow[2]}, 0.08)`);
+      hrg.addColorStop(1, 'rgba(0,0,0,0)');
+      rctx.fillStyle = hrg;
+      rctx.fillRect(0, 62, 128, 4);
+      const vrg = rctx.createLinearGradient(64, 0, 64, 128);
+      vrg.addColorStop(0, 'rgba(0,0,0,0)');
+      vrg.addColorStop(0.3, `rgba(${col.glow[0]}, ${col.glow[1]}, ${col.glow[2]}, 0.06)`);
+      vrg.addColorStop(0.5, `rgba(${col.core[0]}, ${col.core[1]}, ${col.core[2]}, 0.3)`);
+      vrg.addColorStop(0.7, `rgba(${col.glow[0]}, ${col.glow[1]}, ${col.glow[2]}, 0.06)`);
+      vrg.addColorStop(1, 'rgba(0,0,0,0)');
+      rctx.fillStyle = vrg;
+      rctx.fillRect(62, 0, 4, 128);
+      const rayMat2 = new THREE.SpriteMaterial({
+        map: new THREE.CanvasTexture(rc), transparent: true, opacity: 0.4 + Math.random() * 0.3,
+        blending: THREE.AdditiveBlending, depthWrite: false,
+      });
+      const rays = new THREE.Sprite(rayMat2);
+      const rayScale = haloSize * 2.5;
+      rays.scale.set(rayScale, rayScale, 1);
+      group.add(rays);
+
+      this.scene.add(group);
+      this.brightStars.push({ group, halo, rays, baseOpacity: haloMat2.opacity, rayBaseOpacity: rayMat2.opacity, phase: Math.random() * Math.PI * 2 });
+    }
   }
 
   // ── Mars-like planet with surface texture ──
@@ -692,7 +773,7 @@ class BackgroundScene {
   // ── Black hole with torus accretion ring ──
   createBlackHole() {
     this.bhGroup = new THREE.Group();
-    this.bhGroup.position.set(300, -400, -800);
+    this.bhGroup.position.set(-300, 80, -900);
 
     // Accretion ring - dust/rock particles in a torus ring shape
     const ringCount = 800;
@@ -704,14 +785,14 @@ class BackgroundScene {
     this.bhRingYOffsets = new Float32Array(ringCount);
     for (let i = 0; i < ringCount; i++) {
       const angle = Math.random() * Math.PI * 2;
-      const dist = 35 + Math.random() * 25;
-      const tubeOffset = (Math.random() - 0.5) * 8;
+      const dist = 32 + Math.random() * 23;
+      const tubeOffset = (Math.random() - 0.5) * 7;
       this.bhRingAngles[i] = angle;
       this.bhRingDists[i] = dist;
       this.bhRingYOffsets[i] = tubeOffset;
       ringPos[i * 3]     = Math.cos(angle) * dist;
-      ringPos[i * 3 + 1] = tubeOffset * 0.3;
-      ringPos[i * 3 + 2] = Math.sin(angle) * dist * 0.4;
+      ringPos[i * 3 + 1] = Math.sin(angle) * dist * 0.12 + tubeOffset * 0.2;
+      ringPos[i * 3 + 2] = tubeOffset * 0.4;
       // Rocky grey-brown with slight warm tint
       const grey = 0.35 + Math.random() * 0.35;
       ringColors[i * 3]     = grey + 0.05 + Math.random() * 0.1;
@@ -721,10 +802,11 @@ class BackgroundScene {
     ringGeo.setAttribute('position', new THREE.BufferAttribute(ringPos, 3));
     ringGeo.setAttribute('color', new THREE.BufferAttribute(ringColors, 3));
     const ringMat = new THREE.PointsMaterial({
-      size: 1.8, transparent: true, opacity: 0.55, vertexColors: true,
+      size: 1.6, transparent: true, opacity: 0.55, vertexColors: true,
       depthWrite: false, sizeAttenuation: true,
     });
     this.bhRing = new THREE.Points(ringGeo, ringMat);
+    this.bhRing.rotation.z = -0.3;
     this.bhGroup.add(this.bhRing);
 
     // Dark center void
@@ -743,7 +825,7 @@ class BackgroundScene {
       blending: THREE.NormalBlending, depthWrite: false,
     });
     const voidSprite = new THREE.Sprite(voidMat);
-    voidSprite.scale.set(55, 55, 1);
+    voidSprite.scale.set(50, 50, 1);
     this.bhGroup.add(voidSprite);
 
     // Event horizon glow
@@ -763,7 +845,7 @@ class BackgroundScene {
       blending: THREE.AdditiveBlending, depthWrite: false,
     });
     const glowSprite = new THREE.Sprite(glowMat);
-    glowSprite.scale.set(160, 160, 1);
+    glowSprite.scale.set(145, 145, 1);
     this.bhGroup.add(glowSprite);
     this.bhGlow = glowSprite;
 
@@ -783,7 +865,7 @@ class BackgroundScene {
       blending: THREE.AdditiveBlending, depthWrite: false,
     });
     const lensHalo = new THREE.Sprite(lensMat);
-    lensHalo.scale.set(220, 220, 1);
+    lensHalo.scale.set(200, 200, 1);
     this.bhGroup.add(lensHalo);
 
     this.scene.add(this.bhGroup);
@@ -829,7 +911,7 @@ class BackgroundScene {
       blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true,
     });
     this.galaxy = new THREE.Points(geo, mat);
-    this.galaxy.position.set(-220, -180, -900);
+    this.galaxy.position.set(-170, -200, -900);
     this.galaxy.rotation.x = 0.8;
     this.scene.add(this.galaxy);
 
@@ -1134,16 +1216,16 @@ class BackgroundScene {
     const rPos = this.bhRing.geometry.attributes.position.array;
     const rCount = this.bhRingAngles.length;
     for (let i = 0; i < rCount; i++) {
-      this.bhRingAngles[i] += 0.002 + (1 - this.bhRingDists[i] / 60) * 0.003; // inner orbits faster
+      this.bhRingAngles[i] += 0.008 + (1 - this.bhRingDists[i] / 55) * 0.012; // inner orbits faster
       const a = this.bhRingAngles[i];
       const d = this.bhRingDists[i];
       rPos[i * 3]     = Math.cos(a) * d;
-      rPos[i * 3 + 1] = this.bhRingYOffsets[i] * 0.3;
-      rPos[i * 3 + 2] = Math.sin(a) * d * 0.4;
+      rPos[i * 3 + 1] = Math.sin(a) * d * 0.12 + this.bhRingYOffsets[i] * 0.2;
+      rPos[i * 3 + 2] = this.bhRingYOffsets[i] * 0.4;
     }
     this.bhRing.geometry.attributes.position.needsUpdate = true;
     this.bhGlow.material.opacity = 0.6 + Math.sin(t * 3) * 0.2;
-    const glowScale = 160 + Math.sin(t * 1.8) * 8;
+    const glowScale = 145 + Math.sin(t * 1.8) * 7;
     this.bhGlow.scale.set(glowScale, glowScale, 1);
 
     // ── Galaxy spins around its center ──
