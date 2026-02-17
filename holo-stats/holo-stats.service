@@ -1,0 +1,18 @@
+[Unit]
+Description=HoloStats - Holographic 3D System Stats Display
+After=graphical-session.target
+PartOf=graphical-session.target
+StartLimitBurst=0
+
+[Service]
+Type=simple
+ExecStart=%h/workspaces/zozo_ws/linux-stats-display/holo-stats/run.sh
+Restart=always
+RestartSec=3
+TimeoutStopSec=5
+KillSignal=SIGTERM
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=graphical-session.target

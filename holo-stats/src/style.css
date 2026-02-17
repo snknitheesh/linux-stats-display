@@ -1,0 +1,188 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: transparent;
+  overflow: hidden;
+  font-family: 'DejaVu Sans Mono', 'Fira Code', monospace;
+  color: #c0c8d0;
+}
+
+#canvas-container {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  z-index: 0;
+}
+
+#overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* ─── Time ─── */
+#time-section {
+  position: absolute;
+  top: 6px;
+  left: 0; right: 0;
+  text-align: center;
+}
+#date-display {
+  font-size: 14px;
+  color: #00f0ff;
+  letter-spacing: 3px;
+  text-shadow: 0 0 8px rgba(0, 240, 255, 0.5);
+}
+#time-display {
+  font-size: 42px;
+  font-weight: 300;
+  color: #e0e8f0;
+  letter-spacing: 4px;
+  text-shadow: 0 0 15px rgba(224, 232, 240, 0.3);
+  line-height: 1.1;
+}
+
+/* ─── SVG Ring Row ─── */
+#ring-row {
+  position: absolute;
+  top: 80px;
+  left: 0; right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+
+.ring-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 150px;
+}
+
+.ring-wrap {
+  position: relative;
+  width: 140px;
+  height: 140px;
+}
+
+.ring-svg {
+  width: 140px;
+  height: 140px;
+}
+
+.ring-bg {
+  fill: none;
+  stroke: #1a2a3a;
+  stroke-width: 3.5;
+  stroke-dasharray: 6.5 2.3;
+}
+
+.ring-fill {
+  fill: none;
+  stroke: var(--ring-color);
+  stroke-width: 3.5;
+  stroke-linecap: butt;
+  stroke-dasharray: 0 188.5;
+  transform: rotate(-90deg);
+  transform-origin: center;
+  filter: drop-shadow(0 0 3px var(--ring-color));
+  transition: stroke-dasharray 0.8s ease, stroke 0.8s ease, filter 0.8s ease;
+}
+
+.ring-val {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  line-height: 1;
+}
+.rv-num {
+  font-size: 26px;
+  font-weight: bold;
+  color: var(--ring-color);
+  text-shadow: 0 0 8px var(--ring-color);
+  transition: color 0.8s ease, text-shadow 0.8s ease;
+}
+.rv-unit {
+  font-size: 12px;
+  color: rgba(224, 232, 240, 0.4);
+  margin-left: 1px;
+}
+.ring-lbl {
+  font-size: 12px;
+  color: #e0e8f0;
+  letter-spacing: 2px;
+  opacity: 0.7;
+  margin-top: 3px;
+}
+
+/* ─── Stats Columns ─── */
+#stats-container {
+  position: absolute;
+  top: 290px;
+  left: 0; right: 0;
+  display: flex;
+  padding: 0 30px;
+}
+
+.stats-column {
+  flex: 1;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.stats-column.left { padding-left: 20px; }
+.stats-column.right { padding-left: 60px; }
+
+.stat-line {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 0 8px;
+}
+
+.section-header {
+  color: #00f0ff;
+  font-size: 14px;
+  margin-top: 14px;
+  text-shadow: 0 0 6px rgba(0, 240, 255, 0.4);
+  letter-spacing: 1.5px;
+}
+.section-header:first-child {
+  margin-top: 0;
+}
+.section-header::before { content: '// '; opacity: 0.6; }
+
+.stat-line .label { color: #778899; }
+.stat-line .val-white { color: #e0e8f0; }
+.stat-line .val-green { color: #00ff88; text-shadow: 0 0 4px rgba(0, 255, 136, 0.3); }
+.stat-line .val-magenta { color: #ff00ff; text-shadow: 0 0 4px rgba(255, 0, 255, 0.3); }
+.stat-line .val-orange { color: #ff8800; text-shadow: 0 0 4px rgba(255, 136, 0, 0.3); }
+.stat-line .val-blue { color: #4488ff; text-shadow: 0 0 4px rgba(68, 136, 255, 0.3); }
+.stat-line .val-pink { color: #ff0066; text-shadow: 0 0 4px rgba(255, 0, 102, 0.3); }
+.stat-line .val-purple { color: #aa44ff; text-shadow: 0 0 4px rgba(170, 68, 255, 0.3); }
+
+#stat-top-procs { padding-left: 10px; grid-template-columns: 120px 1fr; }
+#stat-docker-names { padding-left: 10px; grid-template-columns: 1fr; }
+
+/* ─── Corner Brackets ─── */
+.corner-bracket {
+  position: absolute;
+  width: 20px; height: 20px;
+  border-color: #00f0ff;
+  border-style: solid;
+  opacity: 0.25;
+}
+.corner-bracket.tl { top: 3px; left: 3px; border-width: 2px 0 0 2px; }
+.corner-bracket.tr { top: 3px; right: 3px; border-width: 2px 2px 0 0; }
+.corner-bracket.bl { bottom: 3px; left: 3px; border-width: 0 0 2px 2px; }
+.corner-bracket.br { bottom: 3px; right: 3px; border-width: 0 2px 2px 0; }
+
+.divider {
+  position: absolute;
+  bottom: 4px;
+  left: 30px; right: 30px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #00f0ff33, #ff00ff33, #00f0ff33, transparent);
+}
