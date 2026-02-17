@@ -9,11 +9,24 @@
 <body>
   <div id="canvas-container"></div>
 
+  <!-- Overlay effects -->
+  <div class="vignette"></div>
+  <div class="scanline-overlay"></div>
+  <div class="scan-beam"></div>
+  <div class="glitch-flash" id="glitch-flash"></div>
+
   <div id="overlay">
+    <!-- HUD frame -->
     <div class="corner-bracket tl"></div>
     <div class="corner-bracket tr"></div>
     <div class="corner-bracket bl"></div>
     <div class="corner-bracket br"></div>
+    <div class="hud-dot tl"></div>
+    <div class="hud-dot tr"></div>
+    <div class="hud-dot bl"></div>
+    <div class="hud-dot br"></div>
+    <div class="hud-line top"></div>
+    <div class="hud-line mid"></div>
     <div class="divider"></div>
 
     <!-- Time -->
@@ -27,8 +40,14 @@
       <div class="ring-cell" style="--ring-color: #00ff88">
         <div class="ring-wrap">
           <svg class="ring-svg" viewBox="0 0 80 80">
+            <circle class="ring-deco-outer" cx="40" cy="40" r="37">
+              <animateTransform attributeName="transform" type="rotate" from="0 40 40" to="360 40 40" dur="25s" repeatCount="indefinite"/>
+            </circle>
             <circle class="ring-bg" cx="40" cy="40" r="30" />
             <circle class="ring-fill" cx="40" cy="40" r="30" data-ring="0" />
+            <circle class="ring-deco-inner" cx="40" cy="40" r="23">
+              <animateTransform attributeName="transform" type="rotate" from="0 40 40" to="-360 40 40" dur="18s" repeatCount="indefinite"/>
+            </circle>
           </svg>
           <div class="ring-val"><span class="rv-num" id="rv-0">--</span><span class="rv-unit">%</span></div>
         </div>
@@ -37,48 +56,78 @@
       <div class="ring-cell" style="--ring-color: #00ff88">
         <div class="ring-wrap">
           <svg class="ring-svg" viewBox="0 0 80 80">
+            <circle class="ring-deco-outer" cx="40" cy="40" r="37">
+              <animateTransform attributeName="transform" type="rotate" from="0 40 40" to="360 40 40" dur="22s" repeatCount="indefinite"/>
+            </circle>
             <circle class="ring-bg" cx="40" cy="40" r="30" />
             <circle class="ring-fill" cx="40" cy="40" r="30" data-ring="1" />
+            <circle class="ring-deco-inner" cx="40" cy="40" r="23">
+              <animateTransform attributeName="transform" type="rotate" from="0 40 40" to="-360 40 40" dur="15s" repeatCount="indefinite"/>
+            </circle>
           </svg>
           <div class="ring-val"><span class="rv-num" id="rv-1">--</span><span class="rv-unit">%</span></div>
-        </div>
-        <div class="ring-lbl">GPU</div>
-      </div>
-      <div class="ring-cell" style="--ring-color: #00ff88">
-        <div class="ring-wrap">
-          <svg class="ring-svg" viewBox="0 0 80 80">
-            <circle class="ring-bg" cx="40" cy="40" r="30" />
-            <circle class="ring-fill" cx="40" cy="40" r="30" data-ring="2" />
-          </svg>
-          <div class="ring-val"><span class="rv-num" id="rv-2">--</span><span class="rv-unit">°C</span></div>
-        </div>
-        <div class="ring-lbl">CPU TMP</div>
-      </div>
-      <div class="ring-cell" style="--ring-color: #00ff88">
-        <div class="ring-wrap">
-          <svg class="ring-svg" viewBox="0 0 80 80">
-            <circle class="ring-bg" cx="40" cy="40" r="30" />
-            <circle class="ring-fill" cx="40" cy="40" r="30" data-ring="3" />
-          </svg>
-          <div class="ring-val"><span class="rv-num" id="rv-3">--</span><span class="rv-unit">°C</span></div>
-        </div>
-        <div class="ring-lbl">GPU TMP</div>
-      </div>
-      <div class="ring-cell" style="--ring-color: #00ff88">
-        <div class="ring-wrap">
-          <svg class="ring-svg" viewBox="0 0 80 80">
-            <circle class="ring-bg" cx="40" cy="40" r="30" />
-            <circle class="ring-fill" cx="40" cy="40" r="30" data-ring="4" />
-          </svg>
-          <div class="ring-val"><span class="rv-num" id="rv-4">--</span><span class="rv-unit">%</span></div>
         </div>
         <div class="ring-lbl">RAM</div>
       </div>
       <div class="ring-cell" style="--ring-color: #00ff88">
         <div class="ring-wrap">
           <svg class="ring-svg" viewBox="0 0 80 80">
+            <circle class="ring-deco-outer" cx="40" cy="40" r="37">
+              <animateTransform attributeName="transform" type="rotate" from="0 40 40" to="360 40 40" dur="28s" repeatCount="indefinite"/>
+            </circle>
+            <circle class="ring-bg" cx="40" cy="40" r="30" />
+            <circle class="ring-fill" cx="40" cy="40" r="30" data-ring="2" />
+            <circle class="ring-deco-inner" cx="40" cy="40" r="23">
+              <animateTransform attributeName="transform" type="rotate" from="0 40 40" to="-360 40 40" dur="20s" repeatCount="indefinite"/>
+            </circle>
+          </svg>
+          <div class="ring-val"><span class="rv-num" id="rv-2">--</span><span class="rv-unit">%</span></div>
+        </div>
+        <div class="ring-lbl">GPU</div>
+      </div>
+      <div class="ring-cell" style="--ring-color: #00ff88">
+        <div class="ring-wrap">
+          <svg class="ring-svg" viewBox="0 0 80 80">
+            <circle class="ring-deco-outer" cx="40" cy="40" r="37">
+              <animateTransform attributeName="transform" type="rotate" from="0 40 40" to="360 40 40" dur="30s" repeatCount="indefinite"/>
+            </circle>
+            <circle class="ring-bg" cx="40" cy="40" r="30" />
+            <circle class="ring-fill" cx="40" cy="40" r="30" data-ring="3" />
+            <circle class="ring-deco-inner" cx="40" cy="40" r="23">
+              <animateTransform attributeName="transform" type="rotate" from="0 40 40" to="-360 40 40" dur="22s" repeatCount="indefinite"/>
+            </circle>
+          </svg>
+          <div class="ring-val"><span class="rv-num" id="rv-3">--</span><span class="rv-unit">&deg;C</span></div>
+        </div>
+        <div class="ring-lbl">CPU TMP</div>
+      </div>
+      <div class="ring-cell" style="--ring-color: #00ff88">
+        <div class="ring-wrap">
+          <svg class="ring-svg" viewBox="0 0 80 80">
+            <circle class="ring-deco-outer" cx="40" cy="40" r="37">
+              <animateTransform attributeName="transform" type="rotate" from="0 40 40" to="360 40 40" dur="26s" repeatCount="indefinite"/>
+            </circle>
+            <circle class="ring-bg" cx="40" cy="40" r="30" />
+            <circle class="ring-fill" cx="40" cy="40" r="30" data-ring="4" />
+            <circle class="ring-deco-inner" cx="40" cy="40" r="23">
+              <animateTransform attributeName="transform" type="rotate" from="0 40 40" to="-360 40 40" dur="17s" repeatCount="indefinite"/>
+            </circle>
+          </svg>
+          <div class="ring-val"><span class="rv-num" id="rv-4">--</span><span class="rv-unit">&deg;C</span></div>
+        </div>
+        <div class="ring-lbl">GPU TMP</div>
+      </div>
+      <div class="ring-cell" style="--ring-color: #00ff88">
+        <div class="ring-wrap">
+          <svg class="ring-svg" viewBox="0 0 80 80">
+            <circle class="ring-deco-outer" cx="40" cy="40" r="37">
+              <animateTransform attributeName="transform" type="rotate" from="0 40 40" to="360 40 40" dur="24s" repeatCount="indefinite"/>
+            </circle>
             <circle class="ring-bg" cx="40" cy="40" r="30" />
             <circle class="ring-fill" cx="40" cy="40" r="30" data-ring="5" />
+            <circle class="ring-deco-inner" cx="40" cy="40" r="23">
+              <animateTransform attributeName="transform" type="rotate" from="0 40 40" to="-360 40 40" dur="19s" repeatCount="indefinite"/>
+            </circle>
           </svg>
           <div class="ring-val"><span class="rv-num" id="rv-5">--</span><span class="rv-unit">W</span></div>
         </div>
@@ -87,8 +136,14 @@
       <div class="ring-cell" style="--ring-color: #00ff88">
         <div class="ring-wrap">
           <svg class="ring-svg" viewBox="0 0 80 80">
+            <circle class="ring-deco-outer" cx="40" cy="40" r="37">
+              <animateTransform attributeName="transform" type="rotate" from="0 40 40" to="360 40 40" dur="27s" repeatCount="indefinite"/>
+            </circle>
             <circle class="ring-bg" cx="40" cy="40" r="30" />
             <circle class="ring-fill" cx="40" cy="40" r="30" data-ring="6" />
+            <circle class="ring-deco-inner" cx="40" cy="40" r="23">
+              <animateTransform attributeName="transform" type="rotate" from="0 40 40" to="-360 40 40" dur="21s" repeatCount="indefinite"/>
+            </circle>
           </svg>
           <div class="ring-val"><span class="rv-num" id="rv-6">--</span><span class="rv-unit">W</span></div>
         </div>
