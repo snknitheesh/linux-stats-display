@@ -6,7 +6,7 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 // ─── Constants ───
 const RING_CIRCUMFERENCE = 2 * Math.PI * 30; // r=30 in SVG viewBox
 
-// ─── Background Scene (multi-layer particles + wireframe shapes + grid + scan beam) ───
+// ─── Background Scene ───
 class BackgroundScene {
   constructor() {
     this.width = window.innerWidth;
@@ -14,6 +14,11 @@ class BackgroundScene {
     this.clock = new THREE.Clock();
     this.shapes = [];
     this.particleLayers = [];
+    this.orbits = [];
+    this.shootingStars = [];
+    this.pulseWaves = [];
+    this.nebulae = [];
+    this.lightColumns = [];
     this.intensity = 0; // driven by system load (0-1)
 
     this.scene = new THREE.Scene();
@@ -32,6 +37,11 @@ class BackgroundScene {
     this.createGeometricShapes();
     this.createGrid();
     this.createScanBeam();
+    this.createEnergyOrbits();
+    this.createShootingStars();
+    this.createPulseWaves();
+    this.createNebulae();
+    this.createLightColumns();
     this.initPostProcessing();
 
     window.addEventListener('resize', () => {
@@ -137,6 +147,173 @@ class BackgroundScene {
     this.scene.add(this.scanBeam);
   }
 
+  createEnergyOrbits() {
+    // 3 tilted particle rings orbiting at different angles
+    const orbitConfigs = [
+      { radius: 250, count: 80, color: 0x00f0ff, tiltX: 0.4, tiltZ: 0.2, speed: 0.15 },
+      { radius: 350, count: 60, color: 0xff00ff, tiltX: -0.3, tiltZ: 0.5, speed: -0.10 },
+      { radius: 180, count: 50, color: 0x00ff88, tiltX: 0.6, tiltZ: -0.3, speed: 0.20 },
+    ];
+
+    orbitConfigs.forEach(cfg => {
+      const geo = new THREE.BufferGeometry();
+      const pos = new Float32Array(cfg.count * 3);
+      const angles = [];
+      for (let i = 0; i < cfg.count; i++) {
+        const a = (i / cfg.count) * Math.PI * 2;
+        pos[i * 3]     = Math.cos(a) * cfg.radius;
+        pos[i * 3 + 1] = 0;
+        pos[i * 3 + 2] = Math.sin(a) * cfg.radius;
+        angles.push(a);
+      }
+      geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+      const mat = new THREE.PointsMaterial({
+        color: cfg.color, size: 1.8, transparent: true, opacity: 0.25,
+        blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true,
+      });
+      const points = new THREE.Points(geo, mat);
+      points.rotation.x = cfg.tiltX;
+      points.rotation.z = cfg.tiltZ;
+      points.position.y = 50;
+      this.scene.add(points);
+      this.orbits.push({ points, config: cfg, angles });
+    });
+  }
+
+  createShootingStars() {
+    // Pool of 6 shooting star streaks, reused cyclically
+    for (let i = 0; i < 6; i++) {
+      const trailLen = 12;
+      const pos = new Float32Array(trailLen * 3);
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+      const colors = [0x00f0ff, 0xff00ff, 0x00ff88, 0x4488ff, 0xff0066, 0xaa44ff];
+      const mat = new THREE.LineBasicMaterial({
+        color: colors[i], transparent: true, opacity: 0,
+        blending: THREE.AdditiveBlending, depthWrite: false,
+      });
+      const line = new THREE.Line(geo, mat);
+      this.scene.add(line);
+      this.shootingStars.push({
+        line, trailLen, active: false, life: 0, maxLife: 0,
+        origin: new THREE.Vector3(), direction: new THREE.Vector3(),
+        speed: 0, headPos: new THREE.Vector3(),
+      });
+    }
+    // Start spawning
+    this._scheduleShootingStar();
+  }
+
+  _scheduleShootingStar() {
+    const delay = 800 + Math.random() * 3000;
+    setTimeout(() => {
+      this._fireShootingStar();
+      this._scheduleShootingStar();
+    }, delay);
+  }
+
+  _fireShootingStar() {
+    const ss = this.shootingStars.find(s => !s.active);
+    if (!ss) return;
+    ss.active = true;
+    ss.life = 0;
+    ss.maxLife = 40 + Math.random() * 40;
+    ss.speed = 8 + Math.random() * 12;
+    // Random start from edges
+    const side = Math.random();
+    if (side < 0.5) {
+      ss.origin.set((Math.random() - 0.5) * 1600, 200 + Math.random() * 200, -100 - Math.random() * 300);
+      ss.direction.set((Math.random() - 0.5) * 0.5, -1, (Math.random() - 0.5) * 0.3).normalize();
+    } else {
+      ss.origin.set(-800 + Math.random() * 200, (Math.random() - 0.5) * 400, -100 - Math.random() * 300);
+      ss.direction.set(1, (Math.random() - 0.5) * 0.3, (Math.random() - 0.5) * 0.2).normalize();
+    }
+    ss.headPos.copy(ss.origin);
+    ss.line.material.opacity = 0.5;
+  }
+
+  createPulseWaves() {
+    // 3 expanding ring waves from center
+    for (let i = 0; i < 3; i++) {
+      const geo = new THREE.RingGeometry(1, 2, 64);
+      const mat = new THREE.MeshBasicMaterial({
+        color: 0x00f0ff, transparent: true, opacity: 0,
+        blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide,
+      });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.rotation.x = -Math.PI / 2;
+      mesh.position.set(0, -140, 0);
+      this.scene.add(mesh);
+      this.pulseWaves.push({
+        mesh, phase: i * (Math.PI * 2 / 3), maxRadius: 500, speed: 0.4 + i * 0.1,
+      });
+    }
+  }
+
+  createNebulae() {
+    // Soft glowing cloud sprites for atmospheric depth
+    const canvas = document.createElement('canvas');
+    canvas.width = 64; canvas.height = 64;
+    const ctx = canvas.getContext('2d');
+    const grad = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+    grad.addColorStop(0, 'rgba(255,255,255,0.4)');
+    grad.addColorStop(0.5, 'rgba(255,255,255,0.1)');
+    grad.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 64, 64);
+    const texture = new THREE.CanvasTexture(canvas);
+
+    const nebulaConfigs = [
+      { pos: [-400, 100, -400], color: 0x00f0ff, scale: 200, opacity: 0.04 },
+      { pos: [350, 150, -350],  color: 0xff00ff, scale: 250, opacity: 0.03 },
+      { pos: [-100, -50, -500], color: 0x4488ff, scale: 300, opacity: 0.03 },
+      { pos: [200, 200, -450],  color: 0x00ff88, scale: 180, opacity: 0.04 },
+      { pos: [-300, -100, -350],color: 0xaa44ff, scale: 220, opacity: 0.03 },
+    ];
+
+    nebulaConfigs.forEach(cfg => {
+      const mat = new THREE.SpriteMaterial({
+        map: texture, color: cfg.color, transparent: true, opacity: cfg.opacity,
+        blending: THREE.AdditiveBlending, depthWrite: false,
+      });
+      const sprite = new THREE.Sprite(mat);
+      sprite.position.set(...cfg.pos);
+      sprite.scale.set(cfg.scale, cfg.scale, 1);
+      this.scene.add(sprite);
+      this.nebulae.push({ sprite, baseOpacity: cfg.opacity, phase: Math.random() * Math.PI * 2 });
+    });
+  }
+
+  createLightColumns() {
+    // Vertical beams of light rising from the grid
+    const colConfigs = [
+      { x: -300, z: -200, color: 0x00f0ff, height: 400, width: 3 },
+      { x: 400,  z: -300, color: 0xff00ff, height: 350, width: 2.5 },
+      { x: -100, z: -400, color: 0x00ff88, height: 300, width: 2 },
+      { x: 250,  z: -150, color: 0x4488ff, height: 450, width: 3 },
+    ];
+
+    colConfigs.forEach(cfg => {
+      const geo = new THREE.PlaneGeometry(cfg.width, cfg.height, 1, 1);
+      const mat = new THREE.MeshBasicMaterial({
+        color: cfg.color, transparent: true, opacity: 0.04,
+        blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide,
+      });
+      const beam = new THREE.Mesh(geo, mat);
+      beam.position.set(cfg.x, -150 + cfg.height / 2, cfg.z);
+      this.scene.add(beam);
+      // Second plane rotated 90deg for volume
+      const beam2 = new THREE.Mesh(geo.clone(), mat.clone());
+      beam2.position.copy(beam.position);
+      beam2.rotation.y = Math.PI / 2;
+      this.scene.add(beam2);
+      this.lightColumns.push(
+        { mesh: beam, baseOpacity: 0.04, phase: Math.random() * Math.PI * 2 },
+        { mesh: beam2, baseOpacity: 0.04, phase: Math.random() * Math.PI * 2 },
+      );
+    });
+  }
+
   initPostProcessing() {
     this.composer = new EffectComposer(this.renderer);
     const renderPass = new RenderPass(this.scene, this.camera);
@@ -192,6 +369,67 @@ class BackgroundScene {
     const scanY = -150 + ((t * 25) % 500) - 50;
     this.scanBeam.position.y = scanY;
     this.scanBeam.material.opacity = 0.06 + Math.sin(t * 2) * 0.04 + intensity * 0.04;
+
+    // Energy orbits - rotate particles along their circular paths
+    this.orbits.forEach(orb => {
+      const pos = orb.points.geometry.attributes.position.array;
+      const spd = orb.config.speed * (1 + intensity * 2);
+      for (let i = 0; i < orb.angles.length; i++) {
+        orb.angles[i] += spd * 0.016; // ~60fps delta
+        const a = orb.angles[i];
+        const r = orb.config.radius + Math.sin(a * 3 + t) * 8;
+        pos[i * 3]     = Math.cos(a) * r;
+        pos[i * 3 + 1] = Math.sin(a * 2 + t * 0.5) * 10;
+        pos[i * 3 + 2] = Math.sin(a) * r;
+      }
+      orb.points.geometry.attributes.position.needsUpdate = true;
+      orb.points.material.opacity = 0.15 + intensity * 0.15 + Math.sin(t * 0.7 + orb.config.radius * 0.01) * 0.08;
+    });
+
+    // Shooting stars - advance head, fade trail
+    this.shootingStars.forEach(ss => {
+      if (!ss.active) return;
+      ss.life++;
+      ss.headPos.addScaledVector(ss.direction, ss.speed);
+      const pos = ss.line.geometry.attributes.position.array;
+      // Shift trail back
+      for (let i = ss.trailLen - 1; i > 0; i--) {
+        pos[i * 3]     = pos[(i - 1) * 3];
+        pos[i * 3 + 1] = pos[(i - 1) * 3 + 1];
+        pos[i * 3 + 2] = pos[(i - 1) * 3 + 2];
+      }
+      pos[0] = ss.headPos.x;
+      pos[1] = ss.headPos.y;
+      pos[2] = ss.headPos.z;
+      ss.line.geometry.attributes.position.needsUpdate = true;
+      // Fade out
+      const lifeRatio = ss.life / ss.maxLife;
+      ss.line.material.opacity = lifeRatio < 0.8 ? 0.5 : 0.5 * (1 - (lifeRatio - 0.8) / 0.2);
+      if (ss.life >= ss.maxLife) {
+        ss.active = false;
+        ss.line.material.opacity = 0;
+      }
+    });
+
+    // Pulse waves - expand and fade cyclically
+    this.pulseWaves.forEach(pw => {
+      const cycle = ((t * pw.speed + pw.phase) % (Math.PI * 2)) / (Math.PI * 2);
+      const radius = cycle * pw.maxRadius;
+      pw.mesh.scale.set(radius, radius, 1);
+      pw.mesh.material.opacity = (1 - cycle) * 0.06 * (1 + intensity);
+    });
+
+    // Nebulae breathe
+    this.nebulae.forEach(n => {
+      n.sprite.material.opacity = n.baseOpacity + Math.sin(t * 0.2 + n.phase) * n.baseOpacity * 0.6;
+      const s = n.sprite.scale.x * (1 + Math.sin(t * 0.15 + n.phase) * 0.03);
+      n.sprite.scale.set(s, s, 1);
+    });
+
+    // Light columns pulse
+    this.lightColumns.forEach(col => {
+      col.mesh.material.opacity = col.baseOpacity + Math.sin(t * 0.5 + col.phase) * 0.02 + intensity * 0.02;
+    });
 
     // Dynamic bloom intensifies under load
     this.bloomPass.strength = 1.0 + intensity * 0.6;
