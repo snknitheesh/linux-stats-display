@@ -1,6 +1,7 @@
 -- ============================================================
--- CYBERPUNK NEON STATS DISPLAY
--- Animated ring gauges with glow, pulse, and sweep effects
+-- CYBERPUNK NEON STATS DISPLAY v3 — SCI-FI EDITION
+-- Multi-orbit particles, energy pulses, dual scan lines,
+-- spinning rings, halos, and intense neon glow
 -- ============================================================
 
 require 'cairo'
@@ -17,6 +18,17 @@ local ORANGE     = 0xff8800
 local PURPLE     = 0xaa44ff
 local WHITE      = 0xffffff
 local BG_RING    = 0x1a1a2e
+
+-- Each ring gets a unique accent color for its orbiting particles
+local ACCENT_COLORS = {
+    {CYAN, ELECTRIC, 0x66ffff},
+    {MAGENTA, HOT_PINK, 0xff88ff},
+    {NEON_GREEN, 0x44ffaa, CYAN},
+    {HOT_PINK, ORANGE, MAGENTA},
+    {ORANGE, 0xffcc00, HOT_PINK},
+    {PURPLE, MAGENTA, ELECTRIC},
+    {ELECTRIC, CYAN, PURPLE},
+}
 
 -- ============================================================
 -- RING GAUGE DEFINITIONS
@@ -156,6 +168,11 @@ function draw_centered_text(cr, text, cx, cy, font_size, color, alpha, weight)
     local text_w = string.len(text) * char_w
     local x = cx - text_w / 2
     local y = cy + font_size * 0.35
+    -- Text glow
+    cairo_set_source_rgba(cr, rgb_to_r_g_b(color, alpha * 0.4))
+    cairo_move_to(cr, x, y)
+    cairo_show_text(cr, text)
+    -- Main text
     cairo_set_source_rgba(cr, rgb_to_r_g_b(color, alpha))
     cairo_move_to(cr, x, y)
     cairo_show_text(cr, text)
@@ -171,13 +188,28 @@ function draw_segmented_ring(cr, value, pt, time, ring_index)
     local active_segments = math.floor(value * segments + 0.5)
     local fg_color = pt.fg_colour
     local pct = value * pt.max
+    local breath = 0.5 + 0.5 * math.sin(time * 2.0 + ring_index * 0.7)
+    local accents = ACCENT_COLORS[ring_index] or {fg_color, fg_color, fg_color}
 
-    -- Breathing glow: entire ring gently pulses
-    local breath = 0.5 + 0.5 * math.sin(time * 1.5 + ring_index * 0.9)
+    -- === HALO / BLOOM behind active arc ===
+    if active_segments > 0 then
+        local active_end = start_angle + value * (end_angle - start_angle)
+        -- Wide outer bloom
+        cairo_arc(cr, pt.x, pt.y, pt.radius, start_angle, active_end)
+        cairo_set_line_width(cr, pt.thickness + 18 + 6 * breath)
+        cairo_set_line_cap(cr, CAIRO_LINE_CAP_BUTT)
+        cairo_set_source_rgba(cr, rgb_to_r_g_b(fg_color, 0.06 + 0.04 * breath))
+        cairo_stroke(cr)
+        -- Medium bloom
+        cairo_arc(cr, pt.x, pt.y, pt.radius, start_angle, active_end)
+        cairo_set_line_width(cr, pt.thickness + 10 + 3 * breath)
+        cairo_set_source_rgba(cr, rgb_to_r_g_b(fg_color, 0.10 + 0.06 * breath))
+        cairo_stroke(cr)
+    end
 
-    -- Subtle gauge face fill (pulses slightly)
+    -- Gauge face fill (breathing)
     cairo_arc(cr, pt.x, pt.y, pt.radius - pt.thickness, 0, 2 * math.pi)
-    cairo_set_source_rgba(cr, rgb_to_r_g_b(fg_color, 0.02 + 0.02 * breath))
+    cairo_set_source_rgba(cr, rgb_to_r_g_b(fg_color, 0.03 + 0.03 * breath))
     cairo_fill(cr)
 
     -- Background segments
@@ -191,16 +223,16 @@ function draw_segmented_ring(cr, value, pt, time, ring_index)
         cairo_stroke(cr)
     end
 
-    -- Active segments with breathing glow
+    -- Active segments with intense glow
     for i = 1, active_segments do
         local a1 = start_angle + (i - 1) * arc_length
         local a2 = a1 + arc_length - (gap * math.pi / 180)
 
-        -- Glow layer (breathes)
+        -- Bright glow layer
         cairo_arc(cr, pt.x, pt.y, pt.radius, a1, a2)
-        cairo_set_line_width(cr, pt.thickness + 5 + 2 * breath)
+        cairo_set_line_width(cr, pt.thickness + 6 + 3 * breath)
         cairo_set_line_cap(cr, CAIRO_LINE_CAP_BUTT)
-        cairo_set_source_rgba(cr, rgb_to_r_g_b(fg_color, 0.08 + 0.06 * breath))
+        cairo_set_source_rgba(cr, rgb_to_r_g_b(fg_color, 0.15 + 0.10 * breath))
         cairo_stroke(cr)
 
         -- Main segment
@@ -210,126 +242,204 @@ function draw_segmented_ring(cr, value, pt, time, ring_index)
         cairo_stroke(cr)
     end
 
-    -- Pulsing alarm glow when value > 80%
+    -- Pulsing alarm when > 80%
     if pct > 80 then
-        local pulse = 0.5 + 0.5 * math.sin(time * 4)
+        local pulse = 0.5 + 0.5 * math.sin(time * 5)
         local active_end = start_angle + value * (end_angle - start_angle)
         cairo_arc(cr, pt.x, pt.y, pt.radius, start_angle, active_end)
-        cairo_set_line_width(cr, pt.thickness + 10 + 4 * pulse)
-        cairo_set_source_rgba(cr, rgb_to_r_g_b(0xff0033, 0.06 + 0.06 * pulse))
+        cairo_set_line_width(cr, pt.thickness + 16 + 6 * pulse)
+        cairo_set_source_rgba(cr, rgb_to_r_g_b(0xff0033, 0.10 + 0.10 * pulse))
         cairo_stroke(cr)
     end
 
-    -- === SPINNING ORBIT DOT ===
-    -- A bright dot that continuously orbits the ring on the outer track
-    local orbit_radius = pt.radius + pt.thickness + 8
-    local orbit_speed = 1.2 + (value * 1.5)  -- faster when value is higher
-    local orbit_angle = start_angle + ((time * orbit_speed + ring_index * 1.3) % (2 * math.pi))
-    -- Keep orbit within the ring arc range
-    local arc_range = end_angle - start_angle
-    local orbit_pos = start_angle + ((time * orbit_speed + ring_index * 1.3) % arc_range)
-
-    local ox = pt.x + orbit_radius * math.cos(orbit_pos)
-    local oy = pt.y + orbit_radius * math.sin(orbit_pos)
-
-    -- Orbit dot trail (fading tail behind the dot)
-    for t = 1, 4 do
-        local trail_angle = orbit_pos - t * 0.08
-        local tx = pt.x + orbit_radius * math.cos(trail_angle)
-        local ty = pt.y + orbit_radius * math.sin(trail_angle)
-        local trail_alpha = 0.15 - t * 0.03
-        cairo_arc(cr, tx, ty, 2.5 - t * 0.3, 0, 2 * math.pi)
-        cairo_set_source_rgba(cr, rgb_to_r_g_b(fg_color, trail_alpha))
-        cairo_fill(cr)
+    -- === SPINNING DECORATIVE RINGS ===
+    -- Inner ring spins clockwise
+    local inner_r = pt.radius - pt.thickness - 4
+    local spin1 = time * 0.8 + ring_index * 0.5
+    local inner_arc = math.pi * 0.6
+    for k = 0, 2 do
+        local sa = spin1 + k * (2 * math.pi / 3)
+        cairo_arc(cr, pt.x, pt.y, inner_r, sa, sa + inner_arc)
+        cairo_set_line_width(cr, 1.5)
+        cairo_set_line_cap(cr, CAIRO_LINE_CAP_ROUND)
+        cairo_set_source_rgba(cr, rgb_to_r_g_b(accents[1], 0.20 + 0.12 * breath))
+        cairo_stroke(cr)
     end
 
-    -- Orbit dot outer glow
-    cairo_arc(cr, ox, oy, 5, 0, 2 * math.pi)
-    cairo_set_source_rgba(cr, rgb_to_r_g_b(fg_color, 0.2))
-    cairo_fill(cr)
+    -- Outer ring spins counter-clockwise
+    local outer_r = pt.radius + pt.thickness + 4
+    local spin2 = -time * 0.6 + ring_index * 0.3
+    local outer_arc = math.pi * 0.4
+    for k = 0, 3 do
+        local sa = spin2 + k * (2 * math.pi / 4)
+        cairo_arc(cr, pt.x, pt.y, outer_r, sa, sa + outer_arc)
+        cairo_set_line_width(cr, 1)
+        cairo_set_line_cap(cr, CAIRO_LINE_CAP_ROUND)
+        cairo_set_source_rgba(cr, rgb_to_r_g_b(accents[2], 0.15 + 0.10 * breath))
+        cairo_stroke(cr)
+    end
 
-    -- Orbit dot core
-    cairo_arc(cr, ox, oy, 2.5, 0, 2 * math.pi)
-    cairo_set_source_rgba(cr, rgb_to_r_g_b(WHITE, 0.85))
-    cairo_fill(cr)
+    -- === MULTI-ORBIT PARTICLES (3 per ring) ===
+    local arc_range = end_angle - start_angle
+    local orbit_configs = {
+        {radius = pt.radius + pt.thickness + 9,  speed = 1.8, phase = 0,    color = accents[1], size = 3.0},
+        {radius = pt.radius + pt.thickness + 14, speed = 1.2, phase = 2.1,  color = accents[2], size = 2.5},
+        {radius = pt.radius - pt.thickness - 8,  speed = 2.5, phase = 4.2,  color = accents[3], size = 2.0},
+    }
+
+    for _, orb in ipairs(orbit_configs) do
+        local orbit_pos = ((time * orb.speed + ring_index * 1.1 + orb.phase) % arc_range) + start_angle
+        local ox = pt.x + orb.radius * math.cos(orbit_pos)
+        local oy = pt.y + orb.radius * math.sin(orbit_pos)
+
+        -- Trail (6 segments, fading and shrinking)
+        for t = 1, 6 do
+            local trail_angle = orbit_pos - t * 0.12
+            local tx = pt.x + orb.radius * math.cos(trail_angle)
+            local ty = pt.y + orb.radius * math.sin(trail_angle)
+            local trail_alpha = (0.30 - t * 0.045)
+            local trail_size = orb.size - t * 0.3
+            if trail_size > 0 and trail_alpha > 0 then
+                cairo_arc(cr, tx, ty, trail_size, 0, 2 * math.pi)
+                cairo_set_source_rgba(cr, rgb_to_r_g_b(orb.color, trail_alpha))
+                cairo_fill(cr)
+            end
+        end
+
+        -- Particle outer glow
+        cairo_arc(cr, ox, oy, orb.size + 3, 0, 2 * math.pi)
+        cairo_set_source_rgba(cr, rgb_to_r_g_b(orb.color, 0.25))
+        cairo_fill(cr)
+
+        -- Particle mid glow
+        cairo_arc(cr, ox, oy, orb.size + 1, 0, 2 * math.pi)
+        cairo_set_source_rgba(cr, rgb_to_r_g_b(orb.color, 0.5))
+        cairo_fill(cr)
+
+        -- Particle core
+        cairo_arc(cr, ox, oy, orb.size * 0.6, 0, 2 * math.pi)
+        cairo_set_source_rgba(cr, rgb_to_r_g_b(WHITE, 0.9))
+        cairo_fill(cr)
+    end
 
     -- === PULSATING INDICATOR DOT at end of active arc ===
     if active_segments > 0 then
         local active_end = start_angle + value * (end_angle - start_angle)
         local dx = pt.x + pt.radius * math.cos(active_end)
         local dy = pt.y + pt.radius * math.sin(active_end)
-        local pulse = 0.5 + 0.5 * math.sin(time * 3 + ring_index * 0.8)
+        local pulse = 0.5 + 0.5 * math.sin(time * 4 + ring_index * 0.8)
 
-        -- Outer glow
-        cairo_arc(cr, dx, dy, 3 + pulse * 3, 0, 2 * math.pi)
-        cairo_set_source_rgba(cr, rgb_to_r_g_b(fg_color, 0.25 * pulse))
+        -- Wide glow
+        cairo_arc(cr, dx, dy, 5 + pulse * 4, 0, 2 * math.pi)
+        cairo_set_source_rgba(cr, rgb_to_r_g_b(fg_color, 0.20 * pulse))
         cairo_fill(cr)
 
-        -- Core dot
-        cairo_arc(cr, dx, dy, 2.5, 0, 2 * math.pi)
-        cairo_set_source_rgba(cr, rgb_to_r_g_b(WHITE, 0.7 + 0.3 * pulse))
+        -- Bright core
+        cairo_arc(cr, dx, dy, 3, 0, 2 * math.pi)
+        cairo_set_source_rgba(cr, rgb_to_r_g_b(WHITE, 0.8 + 0.2 * pulse))
         cairo_fill(cr)
     end
-
-    -- Decorative inner thin ring (breathes)
-    cairo_arc(cr, pt.x, pt.y, pt.radius - pt.thickness - 3, start_angle, end_angle)
-    cairo_set_line_width(cr, 1)
-    cairo_set_line_cap(cr, CAIRO_LINE_CAP_ROUND)
-    cairo_set_source_rgba(cr, rgb_to_r_g_b(fg_color, 0.10 + 0.08 * breath))
-    cairo_stroke(cr)
-
-    -- Decorative outer thin ring (breathes)
-    cairo_arc(cr, pt.x, pt.y, pt.radius + pt.thickness + 3, start_angle, end_angle)
-    cairo_set_line_width(cr, 1)
-    cairo_set_source_rgba(cr, rgb_to_r_g_b(fg_color, 0.08 + 0.06 * breath))
-    cairo_stroke(cr)
 end
 
+-- Glowing line with energy pulse traveling along it
 function draw_glow_line(cr, x1, y, x2, color, alpha, time)
     time = time or 0
-    local breath = 0.5 + 0.5 * math.sin(time * 1.2)
-    -- Wide glow (breathes)
+    local breath = 0.5 + 0.5 * math.sin(time * 2.0)
+    local line_len = x2 - x1
+
+    -- Wide glow
     cairo_move_to(cr, x1, y)
     cairo_line_to(cr, x2, y)
-    cairo_set_line_width(cr, 3 + breath)
-    cairo_set_source_rgba(cr, rgb_to_r_g_b(color, alpha * (0.15 + 0.1 * breath)))
+    cairo_set_line_width(cr, 4 + 2 * breath)
+    cairo_set_source_rgba(cr, rgb_to_r_g_b(color, alpha * (0.20 + 0.15 * breath)))
     cairo_stroke(cr)
+
     -- Core line
     cairo_move_to(cr, x1, y)
     cairo_line_to(cr, x2, y)
     cairo_set_line_width(cr, 1)
-    cairo_set_source_rgba(cr, rgb_to_r_g_b(color, alpha * (0.5 + 0.2 * breath)))
+    cairo_set_source_rgba(cr, rgb_to_r_g_b(color, alpha * (0.6 + 0.3 * breath)))
     cairo_stroke(cr)
+
+    -- Energy pulse traveling along the line
+    local pulse_period = 4
+    local pulse_pos = ((time % pulse_period) / pulse_period)
+    local px = x1 + pulse_pos * line_len
+    local pulse_width = 40
+
+    local gradient = cairo_pattern_create_linear(px - pulse_width, y, px + pulse_width, y)
+    cairo_pattern_add_color_stop_rgba(gradient, 0, rgb_to_r_g_b(color, 0))
+    cairo_pattern_add_color_stop_rgba(gradient, 0.5, rgb_to_r_g_b(color, 0.5))
+    cairo_pattern_add_color_stop_rgba(gradient, 1, rgb_to_r_g_b(color, 0))
+    cairo_rectangle(cr, px - pulse_width, y - 3, pulse_width * 2, 6)
+    cairo_set_source(cr, gradient)
+    cairo_fill(cr)
+    cairo_pattern_destroy(gradient)
+
+    -- Bright dot at pulse center
+    cairo_arc(cr, px, y, 2.5, 0, 2 * math.pi)
+    cairo_set_source_rgba(cr, rgb_to_r_g_b(WHITE, 0.7))
+    cairo_fill(cr)
 end
 
 function draw_corner_bracket(cr, x, y, size, color, alpha, flip_x, flip_y, time)
     time = time or 0
-    local breath = 0.5 + 0.5 * math.sin(time * 1.8)
+    local breath = 0.5 + 0.5 * math.sin(time * 2.5)
     local dx = flip_x and -size or size
     local dy = flip_y and -size or size
+
+    -- Bracket glow
+    cairo_move_to(cr, x + dx, y)
+    cairo_line_to(cr, x, y)
+    cairo_line_to(cr, x, y + dy)
+    cairo_set_line_width(cr, 4 + 2 * breath)
+    cairo_set_source_rgba(cr, rgb_to_r_g_b(color, alpha * (0.2 + 0.2 * breath)))
+    cairo_stroke(cr)
+
+    -- Bracket core
     cairo_move_to(cr, x + dx, y)
     cairo_line_to(cr, x, y)
     cairo_line_to(cr, x, y + dy)
     cairo_set_line_width(cr, 2)
-    cairo_set_source_rgba(cr, rgb_to_r_g_b(color, alpha * (0.7 + 0.3 * breath)))
+    cairo_set_source_rgba(cr, rgb_to_r_g_b(color, alpha * (0.8 + 0.2 * breath)))
     cairo_stroke(cr)
-    -- Corner glow dot
-    cairo_arc(cr, x, y, 2 + breath, 0, 2 * math.pi)
-    cairo_set_source_rgba(cr, rgb_to_r_g_b(color, 0.2 + 0.15 * breath))
+
+    -- Bright corner glow dot
+    cairo_arc(cr, x, y, 3 + 2 * breath, 0, 2 * math.pi)
+    cairo_set_source_rgba(cr, rgb_to_r_g_b(color, 0.3 + 0.3 * breath))
+    cairo_fill(cr)
+
+    -- Corner dot core
+    cairo_arc(cr, x, y, 1.5, 0, 2 * math.pi)
+    cairo_set_source_rgba(cr, rgb_to_r_g_b(WHITE, 0.6 + 0.3 * breath))
     cairo_fill(cr)
 end
 
-function draw_scan_line(cr, time, width, height)
-    local period = 8
-    local scan_x = ((time % period) / period) * (width + 200) - 100
-    local gradient = cairo_pattern_create_linear(scan_x - 100, 0, scan_x + 100, 0)
-    cairo_pattern_add_color_stop_rgba(gradient, 0, 0, 0.94, 1, 0)
-    cairo_pattern_add_color_stop_rgba(gradient, 0.5, 0, 0.94, 1, 0.05)
-    cairo_pattern_add_color_stop_rgba(gradient, 1, 0, 0.94, 1, 0)
-    cairo_rectangle(cr, scan_x - 100, 0, 200, height)
-    cairo_set_source(cr, gradient)
+-- Dual scan lines: cyan left-to-right, magenta right-to-left
+function draw_scan_lines(cr, time, width, height)
+    -- Cyan sweep (left to right)
+    local period1 = 6
+    local scan_x1 = ((time % period1) / period1) * (width + 300) - 150
+    local g1 = cairo_pattern_create_linear(scan_x1 - 120, 0, scan_x1 + 120, 0)
+    cairo_pattern_add_color_stop_rgba(g1, 0, 0, 0.94, 1, 0)
+    cairo_pattern_add_color_stop_rgba(g1, 0.5, 0, 0.94, 1, 0.07)
+    cairo_pattern_add_color_stop_rgba(g1, 1, 0, 0.94, 1, 0)
+    cairo_rectangle(cr, scan_x1 - 120, 0, 240, height)
+    cairo_set_source(cr, g1)
     cairo_fill(cr)
-    cairo_pattern_destroy(gradient)
+    cairo_pattern_destroy(g1)
+
+    -- Magenta sweep (right to left)
+    local period2 = 9
+    local scan_x2 = width - ((time % period2) / period2) * (width + 300) + 150
+    local g2 = cairo_pattern_create_linear(scan_x2 - 80, 0, scan_x2 + 80, 0)
+    cairo_pattern_add_color_stop_rgba(g2, 0, 1, 0, 1, 0)
+    cairo_pattern_add_color_stop_rgba(g2, 0.5, 1, 0, 1, 0.04)
+    cairo_pattern_add_color_stop_rgba(g2, 1, 1, 0, 1, 0)
+    cairo_rectangle(cr, scan_x2 - 80, 0, 160, height)
+    cairo_set_source(cr, g2)
+    cairo_fill(cr)
+    cairo_pattern_destroy(g2)
 end
 
 -- ============================================================
@@ -349,30 +459,49 @@ function conky_draw_ring_stats()
     local w = conky_window.width
     local h = conky_window.height
 
-    -- Animated scan line sweep
-    draw_scan_line(cr, time, w, h)
+    -- Dual animated scan line sweeps
+    draw_scan_lines(cr, time, w, h)
 
-    -- Corner bracket decorations (with breathing glow)
+    -- Corner bracket decorations (with intense breathing glow)
     local s = 25
     local rx = w - 15
     local by = 790
-    draw_corner_bracket(cr, 15, 15, s, CYAN, 0.5, false, false, time)
-    draw_corner_bracket(cr, rx, 15, s, CYAN, 0.5, true, false, time)
-    draw_corner_bracket(cr, 15, by, s, CYAN, 0.5, false, true, time)
-    draw_corner_bracket(cr, rx, by, s, CYAN, 0.5, true, true, time)
+    draw_corner_bracket(cr, 15, 15, s, CYAN, 0.6, false, false, time)
+    draw_corner_bracket(cr, rx, 15, s, CYAN, 0.6, true, false, time + 0.5)
+    draw_corner_bracket(cr, 15, by, s, CYAN, 0.6, false, true, time + 1.0)
+    draw_corner_bracket(cr, rx, by, s, CYAN, 0.6, true, true, time + 1.5)
 
-    -- Horizontal divider lines (with breathing glow)
-    draw_glow_line(cr, 30, 140, rx - 15, CYAN, 0.4, time)
-    draw_glow_line(cr, 30, 295, rx - 15, CYAN, 0.4, time)
-    draw_glow_line(cr, 30, by, rx - 15, CYAN, 0.4, time)
+    -- Horizontal divider lines with energy pulses
+    draw_glow_line(cr, 30, 140, rx - 15, CYAN, 0.5, time)
+    draw_glow_line(cr, 30, 295, rx - 15, MAGENTA, 0.4, time + 1.3)
+    draw_glow_line(cr, 30, by, rx - 15, CYAN, 0.5, time + 2.6)
 
-    -- Vertical divider between left/right panels
-    local vbreath = 0.5 + 0.5 * math.sin(time * 1.2)
+    -- Vertical divider with breathing glow
+    local vbreath = 0.5 + 0.5 * math.sin(time * 2.0)
+    -- Glow
+    cairo_move_to(cr, 650, 310)
+    cairo_line_to(cr, 650, h - 40)
+    cairo_set_line_width(cr, 3 + vbreath)
+    cairo_set_source_rgba(cr, rgb_to_r_g_b(CYAN, 0.06 + 0.04 * vbreath))
+    cairo_stroke(cr)
+    -- Core
     cairo_move_to(cr, 650, 310)
     cairo_line_to(cr, 650, h - 40)
     cairo_set_line_width(cr, 1)
-    cairo_set_source_rgba(cr, rgb_to_r_g_b(CYAN, 0.10 + 0.08 * vbreath))
+    cairo_set_source_rgba(cr, rgb_to_r_g_b(CYAN, 0.15 + 0.10 * vbreath))
     cairo_stroke(cr)
+
+    -- Vertical energy pulse (travels downward)
+    local vpulse_period = 5
+    local vpulse_y = 310 + (((time + 0.7) % vpulse_period) / vpulse_period) * (h - 40 - 310)
+    local vg = cairo_pattern_create_linear(650, vpulse_y - 25, 650, vpulse_y + 25)
+    cairo_pattern_add_color_stop_rgba(vg, 0, rgb_to_r_g_b(CYAN, 0))
+    cairo_pattern_add_color_stop_rgba(vg, 0.5, rgb_to_r_g_b(CYAN, 0.4))
+    cairo_pattern_add_color_stop_rgba(vg, 1, rgb_to_r_g_b(CYAN, 0))
+    cairo_rectangle(cr, 647, vpulse_y - 25, 6, 50)
+    cairo_set_source(cr, vg)
+    cairo_fill(cr)
+    cairo_pattern_destroy(vg)
 
     -- Draw ring gauges
     for i, pt in ipairs(settings_table) do
@@ -392,14 +521,14 @@ function conky_draw_ring_stats()
 
             draw_segmented_ring(cr, value / pt.max, pt, time, i)
 
-            -- Value text inside ring
-            draw_centered_text(cr, tostring(math.floor(value)), pt.x, pt.y - 4, 20, pt.fg_colour, 1)
+            -- Value text (with glow)
+            draw_centered_text(cr, tostring(math.floor(value)), pt.x, pt.y - 8, 16, pt.fg_colour, 1)
 
-            -- Unit text below value
-            draw_centered_text(cr, pt.unit, pt.x, pt.y + 16, 10, WHITE, 0.4, CAIRO_FONT_WEIGHT_NORMAL)
+            -- Unit text
+            draw_centered_text(cr, pt.unit, pt.x, pt.y + 14, 9, WHITE, 0.5, CAIRO_FONT_WEIGHT_NORMAL)
 
             -- Label above ring
-            draw_centered_text(cr, pt.label, pt.x, pt.y - pt.radius - 18, 11, WHITE, 0.7)
+            draw_centered_text(cr, pt.label, pt.x, pt.y - pt.radius - 18, 11, WHITE, 0.8)
         end
     end
 

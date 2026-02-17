@@ -2,6 +2,7 @@
 Description=Linux Stats Display (Conky)
 After=graphical-session.target
 PartOf=graphical-session.target
+StartLimitBurst=0
 
 [Service]
 Type=forking
@@ -9,7 +10,9 @@ WorkingDirectory=%h/workspaces/zozo_ws/linux-stats-display
 # Conky will fork to background (background=true in config)
 ExecStart=/usr/bin/conky -c %h/workspaces/zozo_ws/linux-stats-display/.config/conky/stats.conf
 Restart=always
-RestartSec=5
+RestartSec=3
+TimeoutStopSec=3
+KillSignal=SIGKILL
 StandardOutput=journal
 StandardError=journal
 
