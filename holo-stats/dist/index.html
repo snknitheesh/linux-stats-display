@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>HoloStats</title>
-  <script type="module" crossorigin src="./assets/index-9rBcExXq.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-DiDyEFgm.css">
+  <script type="module" crossorigin src="./assets/index-DukFfEuj.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-Mn3DwnXP.css">
 </head>
 <body>
   <div id="canvas-container"></div>
@@ -149,12 +149,16 @@
 
       <!-- Docker Panel -->
       <div class="panel" id="panel-docker">
-        <div class="panel-header">DOCKER</div>
+        <div class="panel-header">PROCESSES</div>
         <div class="panel-body">
-          <div class="stat-row" id="stat-docker-active"><span class="lbl">ACTIVE</span><span class="val">--</span></div>
-          <div id="docker-manifest" class="docker-manifest"></div>
-          <div class="process-feed-label">TOP PROCESSES</div>
-          <div id="process-feed" class="process-feed"></div>
+          <div class="docker-section">
+            <div class="process-feed-label">ACTIVE DOCKER CONTAINERS <span id="docker-count" class="docker-count-inline">--</span></div>
+            <div id="docker-manifest" class="docker-manifest"></div>
+          </div>
+          <div class="process-section">
+            <div class="process-feed-label">TOP PROCESSES</div>
+            <div id="process-feed" class="process-feed"></div>
+          </div>
         </div>
       </div>
     </div>

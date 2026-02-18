@@ -289,8 +289,8 @@ class HexArcMeter {
       const bgPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
       bgPath.setAttribute('d', pathD);
       bgPath.setAttribute('fill', 'none');
-      bgPath.setAttribute('stroke', 'rgba(0,240,255,0.08)');
-      bgPath.setAttribute('stroke-width', '2');
+      bgPath.setAttribute('stroke', 'rgba(0,240,255,0.3)');
+      bgPath.setAttribute('stroke-width', '2.5');
       svg.appendChild(bgPath);
 
       // Tick marks at each hex vertex
@@ -302,8 +302,8 @@ class HexArcMeter {
         tick.setAttribute('y1', (cy + inner * Math.sin(a)).toFixed(2));
         tick.setAttribute('x2', (cx + outer * Math.cos(a)).toFixed(2));
         tick.setAttribute('y2', (cy + outer * Math.sin(a)).toFixed(2));
-        tick.setAttribute('stroke', 'rgba(0,240,255,0.2)');
-        tick.setAttribute('stroke-width', '1');
+        tick.setAttribute('stroke', 'rgba(0,240,255,0.5)');
+        tick.setAttribute('stroke-width', '1.5');
         svg.appendChild(tick);
       }
 
@@ -702,7 +702,8 @@ class HoloStatsApp {
     setRow(el.netUp, 'UP', `${(s.network.up / 1024).toFixed(2)} MiB/s`, 'val-magenta');
 
     // Docker Panel
-    setRow(el.dockerActive, 'ACTIVE', `${s.docker.count} containers`, 'val-green');
+    const dockCount = document.getElementById('docker-count');
+    if (dockCount) { dockCount.textContent = s.docker.count; }
 
     // Top bar
     if (el.met) el.met.textContent = uptimeToMET(s.system.uptime);

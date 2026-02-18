@@ -227,7 +227,7 @@ class StatsCollector:
         cpu_cores = self._exec("nproc")
 
         # Top processes (exclude self and related processes)
-        top_raw = self._exec("ps -eo comm,%cpu --sort=-%cpu --no-headers | awk '!/conky|python3|launcher|WebKitWebProces/{if(++n<=3)print $1,$2}'")
+        top_raw = self._exec("ps -eo comm,%cpu --sort=-%cpu --no-headers | awk '!/conky|python3|launcher|WebKitWebProces/{if(++n<=6)print $1,$2}'")
         top_procs = []
         for line in top_raw.split('\n'):
             parts = line.strip().split()

@@ -7,8 +7,8 @@
   --text: #E0E8F0;
   --bg: #0A0E1A;
   --panel-bg: rgba(10, 14, 26, 0.65);
-  --panel-border: rgba(0, 240, 255, 0.15);
-  --panel-glow: rgba(0, 240, 255, 0.06);
+  --panel-border: rgba(0, 240, 255, 0.4);
+  --panel-glow: rgba(0, 240, 255, 0.15);
   --green: #00FF88;
 }
 
@@ -105,19 +105,20 @@ body {
 /* ─── Corner Brackets ─── */
 .corner-bracket {
   position: absolute;
-  width: 18px; height: 18px;
+  width: 36px; height: 36px;
   border-color: var(--cyan);
   border-style: solid;
+  filter: drop-shadow(0 0 4px var(--cyan));
   animation: bracket-breathe 3s ease-in-out infinite;
 }
-.corner-bracket.tl { top: 2px; left: 2px; border-width: 2px 0 0 2px; animation-delay: 0s; }
-.corner-bracket.tr { top: 2px; right: 2px; border-width: 2px 2px 0 0; animation-delay: 0.75s; }
-.corner-bracket.bl { bottom: 2px; left: 2px; border-width: 0 0 2px 2px; animation-delay: 1.5s; }
-.corner-bracket.br { bottom: 2px; right: 2px; border-width: 0 2px 2px 0; animation-delay: 2.25s; }
+.corner-bracket.tl { top: 2px; left: 2px; border-width: 2.5px 0 0 2.5px; animation-delay: 0s; }
+.corner-bracket.tr { top: 2px; right: 2px; border-width: 2.5px 2.5px 0 0; animation-delay: 0.75s; }
+.corner-bracket.bl { bottom: 2px; left: 2px; border-width: 0 0 2.5px 2.5px; animation-delay: 1.5s; }
+.corner-bracket.br { bottom: 2px; right: 2px; border-width: 0 2.5px 2.5px 0; animation-delay: 2.25s; }
 
 @keyframes bracket-breathe {
-  0%, 100% { opacity: 0.2; border-color: var(--cyan); }
-  50% { opacity: 0.5; border-color: #00ffcc; }
+  0%, 100% { opacity: 0.6; border-color: var(--cyan); }
+  50% { opacity: 1; border-color: #00ffcc; }
 }
 
 /* ─── Top Bar ─── */
@@ -130,7 +131,7 @@ body {
   justify-content: space-between;
   padding: 0 24px;
   background: linear-gradient(180deg, rgba(0, 240, 255, 0.04) 0%, transparent 100%);
-  border-bottom: 1px solid rgba(0, 240, 255, 0.08);
+  border-bottom: 1px solid rgba(0, 240, 255, 0.3);
 }
 
 #top-left {
@@ -303,7 +304,7 @@ body {
   -webkit-backdrop-filter: blur(6px);
   box-shadow:
     0 0 12px var(--panel-glow),
-    inset 0 0 12px rgba(0, 240, 255, 0.02);
+    inset 0 0 12px rgba(0, 240, 255, 0.05);
 }
 
 .panel::before {
@@ -312,7 +313,7 @@ body {
   top: 0; left: 0; right: 0;
   height: 1px;
   background: linear-gradient(90deg, transparent, var(--cyan), transparent);
-  opacity: 0.2;
+  opacity: 0.5;
 }
 
 .panel-header {
@@ -322,7 +323,7 @@ body {
   margin-bottom: 6px;
   text-shadow: 0 0 6px rgba(0, 240, 255, 0.35);
   padding-bottom: 4px;
-  border-bottom: 1px solid rgba(0, 240, 255, 0.08);
+  border-bottom: 1px solid rgba(0, 240, 255, 0.3);
 }
 .panel-header::before { content: '// '; opacity: 0.5; }
 
@@ -378,8 +379,8 @@ body {
 .core-cell {
   height: 18px;
   border-radius: 2px;
-  background: rgba(0, 240, 255, 0.06);
-  border: 1px solid rgba(0, 240, 255, 0.08);
+  background: rgba(0, 240, 255, 0.08);
+  border: 1px solid rgba(0, 240, 255, 0.2);
   transition: background 0.4s ease, box-shadow 0.4s ease;
 }
 
@@ -394,8 +395,8 @@ body {
 .fuel-seg {
   flex: 1;
   border-radius: 1px;
-  background: rgba(0, 240, 255, 0.06);
-  border: 1px solid rgba(0, 240, 255, 0.06);
+  background: rgba(0, 240, 255, 0.08);
+  border: 1px solid rgba(0, 240, 255, 0.15);
   transition: background 0.4s ease, border-color 0.4s ease;
 }
 
@@ -446,8 +447,26 @@ body {
   height: 100px;
   margin-top: 6px;
   border-radius: 2px;
-  background: rgba(0, 240, 255, 0.02);
-  border: 1px solid rgba(0, 240, 255, 0.06);
+  background: rgba(0, 240, 255, 0.04);
+  border: 1px solid rgba(0, 240, 255, 0.2);
+}
+
+.docker-section {
+  overflow: hidden;
+}
+
+.process-section {
+  overflow: hidden;
+}
+
+.process-section .process-feed-label {
+  margin-top: 8px;
+}
+
+.docker-count-inline {
+  color: var(--green);
+  text-shadow: 0 0 4px rgba(0, 255, 136, 0.3);
+  margin-left: 4px;
 }
 
 /* ─── Docker Manifest ─── */
@@ -508,7 +527,7 @@ body {
   bottom: 3px;
   left: 24px; right: 24px;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(0,240,255,0.15), rgba(255,45,106,0.1), rgba(0,255,136,0.1), rgba(0,240,255,0.15), transparent);
+  background: linear-gradient(90deg, transparent, rgba(0,240,255,0.4), rgba(255,45,106,0.25), rgba(0,255,136,0.25), rgba(0,240,255,0.4), transparent);
   background-size: 200% 100%;
   animation: divider-flow 3s linear infinite;
 }
