@@ -3,19 +3,26 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 
-// ─── Background Scene: Hex grid + data streams + circuit traces ───
+// ─── Seeded random for deterministic layouts ───
+function seededRandom(seed) {
+  let s = seed;
+  return () => { s = (s * 9301 + 49297) % 233280; return s / 233280; };
+}
+
+// ─── Background Scene: Deep space panorama ───
 class BackgroundScene {
   constructor() {
     this.width = window.innerWidth;
     this.height = window.innerHeight;
     this.clock = new THREE.Clock();
     this.intensity = 0;
+    this.starLayers = [];
 
     this.scene = new THREE.Scene();
     const aspect = this.width / this.height;
     this.camera = new THREE.PerspectiveCamera(40, aspect, 1, 5000);
-    this.camera.position.set(0, 0, 500);
-    this.camera.lookAt(0, 0, 0);
+    this.camera.position.set(0, 60, 500);
+    this.camera.lookAt(0, 20, -200);
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     this.renderer.setSize(this.width, this.height);
@@ -23,9 +30,10 @@ class BackgroundScene {
     this.renderer.setClearColor(0x000000, 0);
     document.getElementById('canvas-container').appendChild(this.renderer.domElement);
 
-    this.createHexGrid();
-    this.createDataStreams();
-    this.createCircuitTraces();
+    this.createStarField();
+    this.createNebulae();
+    this.createGalaxy();
+    this.createAsteroids();
     this.initPostProcessing();
 
     window.addEventListener('resize', () => {
@@ -36,142 +44,119 @@ class BackgroundScene {
       this.renderer.setSize(this.width, this.height);
       this.composer.setSize(this.width, this.height);
     });
-
     this.animate();
   }
 
-  createHexGrid() {
-    const positions = [];
-    const hexSize = 30;
-    const cols = 32;
-    const rows = 22;
-    const xStep = hexSize * 1.5;
-    const yStep = hexSize * Math.sqrt(3);
-    const offsetX = -(cols * xStep) / 2;
-    const offsetY = -(rows * yStep) / 2;
-
-    for (let row = 0; row < rows; row++) {
-      for (let col = 0; col < cols; col++) {
-        const cx = offsetX + col * xStep;
-        const cy = offsetY + row * yStep + (col % 2 === 1 ? yStep / 2 : 0);
-        for (let i = 0; i < 6; i++) {
-          const a1 = (Math.PI / 3) * i;
-          const a2 = (Math.PI / 3) * ((i + 1) % 6);
-          positions.push(
-            cx + hexSize * 0.5 * Math.cos(a1), cy + hexSize * 0.5 * Math.sin(a1), -200,
-            cx + hexSize * 0.5 * Math.cos(a2), cy + hexSize * 0.5 * Math.sin(a2), -200
-          );
-        }
-      }
-    }
-
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    const mat = new THREE.LineBasicMaterial({
-      color: 0x00F0FF,
-      transparent: true,
-      opacity: 0.04,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-    });
-    this.hexGrid = new THREE.LineSegments(geo, mat);
-    this.scene.add(this.hexGrid);
-  }
-
-  createDataStreams() {
-    this.streams = [];
-    const streamCount = 5;
-    const pointsPerStream = 100;
-
-    for (let s = 0; s < streamCount; s++) {
+  createStarField() {
+    const configs = [
+      { count: 800, color: 0xccddff, size: 0.4, opacity: 0.5, spread: 2500 },
+      { count: 300, color: 0x88bbff, size: 1.0, opacity: 0.35, spread: 2000 },
+      { count: 200, color: 0xffcc88, size: 0.6, opacity: 0.3, spread: 2200 },
+      { count: 80, color: 0xffffff, size: 2.2, opacity: 0.3, spread: 1600 },
+      { count: 40, color: 0xffd700, size: 1.5, opacity: 0.25, spread: 1800 },
+    ];
+    configs.forEach(cfg => {
       const geo = new THREE.BufferGeometry();
-      const pos = new Float32Array(pointsPerStream * 3);
-      const baseX = (s - (streamCount - 1) / 2) * 180;
-      const baseZ = -100 - Math.random() * 100;
-
-      for (let i = 0; i < pointsPerStream; i++) {
-        pos[i * 3] = baseX + (Math.random() - 0.5) * 40;
-        pos[i * 3 + 1] = (i / pointsPerStream - 0.5) * 800;
-        pos[i * 3 + 2] = baseZ + (Math.random() - 0.5) * 30;
+      const pos = new Float32Array(cfg.count * 3);
+      for (let i = 0; i < cfg.count; i++) {
+        pos[i * 3] = (Math.random() - 0.5) * cfg.spread;
+        pos[i * 3 + 1] = (Math.random() - 0.5) * cfg.spread * 0.6;
+        pos[i * 3 + 2] = -Math.random() * cfg.spread * 0.8 - 100;
       }
       geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-
-      const hue = 0.5 + s * 0.02;
-      const color = new THREE.Color().setHSL(hue, 0.8, 0.5);
       const mat = new THREE.PointsMaterial({
-        color,
-        size: 1.2,
-        transparent: true,
-        opacity: 0.25,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false,
-        sizeAttenuation: true,
+        color: cfg.color, size: cfg.size, transparent: true, opacity: cfg.opacity,
+        blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true,
       });
-
       const points = new THREE.Points(geo, mat);
       this.scene.add(points);
-      this.streams.push({ points, speed: 0.8 + Math.random() * 0.4, baseX });
-    }
+      this.starLayers.push({ points, config: cfg, phase: Math.random() * Math.PI * 2 });
+    });
   }
 
-  createCircuitTraces() {
-    this.circuits = [];
-    const traceCount = 8;
+  createNebulae() {
+    this.nebulae = [];
+    const c = document.createElement('canvas');
+    c.width = 128; c.height = 128;
+    const ctx = c.getContext('2d');
+    const grad = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+    grad.addColorStop(0, 'rgba(255,255,255,0.3)');
+    grad.addColorStop(0.4, 'rgba(255,255,255,0.08)');
+    grad.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 128, 128);
+    const tex = new THREE.CanvasTexture(c);
 
-    for (let t = 0; t < traceCount; t++) {
-      const segCount = 6 + Math.floor(Math.random() * 6);
-      const positions = [];
-      let x = (Math.random() - 0.5) * 600;
-      let y = (Math.random() - 0.5) * 400;
-      const z = -150 + Math.random() * 50;
-
-      positions.push(x, y, z);
-      for (let s = 0; s < segCount; s++) {
-        // Circuit traces go in axis-aligned segments
-        if (Math.random() > 0.5) {
-          x += (Math.random() > 0.5 ? 1 : -1) * (30 + Math.random() * 60);
-        } else {
-          y += (Math.random() > 0.5 ? 1 : -1) * (30 + Math.random() * 60);
-        }
-        positions.push(x, y, z);
-      }
-
-      const geo = new THREE.BufferGeometry();
-      geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-      const mat = new THREE.LineBasicMaterial({
-        color: 0x00F0FF,
-        transparent: true,
-        opacity: 0.08,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false,
+    const cfgs = [
+      { pos: [-450, 180, -900], color: 0x6B2FA0, scale: 500, opacity: 0.06 },
+      { pos: [380, 220, -1000], color: 0x2E4A8A, scale: 450, opacity: 0.05 },
+      { pos: [-200, -120, -800], color: 0x4B3D8F, scale: 400, opacity: 0.04 },
+      { pos: [200, -60, -700], color: 0x1A3A6A, scale: 350, opacity: 0.04 },
+    ];
+    cfgs.forEach(cfg => {
+      const mat = new THREE.SpriteMaterial({
+        map: tex, color: cfg.color, transparent: true, opacity: cfg.opacity,
+        blending: THREE.AdditiveBlending, depthWrite: false,
       });
-      const line = new THREE.Line(geo, mat);
-      this.scene.add(line);
+      const sprite = new THREE.Sprite(mat);
+      sprite.position.set(...cfg.pos);
+      sprite.scale.set(cfg.scale, cfg.scale, 1);
+      this.scene.add(sprite);
+      this.nebulae.push({ sprite, baseOpacity: cfg.opacity, phase: Math.random() * Math.PI * 2 });
+    });
+  }
 
-      // Traveling pulse - a single bright point that moves along the trace
-      const pulseGeo = new THREE.BufferGeometry();
-      pulseGeo.setAttribute('position', new THREE.Float32BufferAttribute([x, y, z], 3));
-      const pulseMat = new THREE.PointsMaterial({
-        color: 0x00F0FF,
-        size: 4,
-        transparent: true,
-        opacity: 0.6,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false,
-        sizeAttenuation: true,
-      });
-      const pulse = new THREE.Points(pulseGeo, pulseMat);
-      this.scene.add(pulse);
-
-      this.circuits.push({
-        line,
-        pulse,
-        vertices: positions,
-        segCount: segCount + 1,
-        progress: Math.random(),
-        speed: 0.003 + Math.random() * 0.004,
-      });
+  createGalaxy() {
+    const count = 1000;
+    const geo = new THREE.BufferGeometry();
+    const pos = new Float32Array(count * 3);
+    const colors = new Float32Array(count * 3);
+    const arms = 3;
+    const armColors = [[0.6, 0.3, 1.0], [0.2, 0.5, 1.0], [1.0, 0.4, 0.7]];
+    for (let i = 0; i < count; i++) {
+      const arm = i % arms;
+      const dist = (i / count) * 180;
+      const spiralAngle = (arm / arms) * Math.PI * 2 + dist * 0.04;
+      const scatter = (Math.random() - 0.5) * (8 + dist * 0.12);
+      pos[i * 3] = Math.cos(spiralAngle) * dist + scatter;
+      pos[i * 3 + 1] = (Math.random() - 0.5) * (2 + dist * 0.015);
+      pos[i * 3 + 2] = Math.sin(spiralAngle) * dist + scatter;
+      const c = armColors[arm];
+      const mix = Math.min(1, (i / count) * 2);
+      colors[i * 3] = c[0] * mix + (1 - mix);
+      colors[i * 3 + 1] = c[1] * mix + (1 - mix) * 0.9;
+      colors[i * 3 + 2] = c[2] * mix + (1 - mix);
     }
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    const mat = new THREE.PointsMaterial({
+      size: 0.8, transparent: true, opacity: 0.25, vertexColors: true,
+      blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true,
+    });
+    this.galaxy = new THREE.Points(geo, mat);
+    this.galaxy.position.set(-250, -220, -900);
+    this.galaxy.rotation.x = 0.8;
+    this.scene.add(this.galaxy);
+  }
+
+  createAsteroids() {
+    const count = 40;
+    const geo = new THREE.BufferGeometry();
+    const pos = new Float32Array(count * 3);
+    this.asteroidVels = [];
+    for (let i = 0; i < count; i++) {
+      pos[i * 3] = (Math.random() - 0.5) * 2000;
+      pos[i * 3 + 1] = (Math.random() - 0.5) * 1000;
+      pos[i * 3 + 2] = -200 - Math.random() * 800;
+      this.asteroidVels.push({ x: 0.08 + Math.random() * 0.06, y: -0.02 - Math.random() * 0.02 });
+    }
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    const mat = new THREE.PointsMaterial({
+      color: 0x667788, size: 1.2, transparent: true, opacity: 0.2,
+      blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true,
+    });
+    this.asteroids = new THREE.Points(geo, mat);
+    this.scene.add(this.asteroids);
   }
 
   initPostProcessing() {
@@ -180,170 +165,69 @@ class BackgroundScene {
     renderPass.clearAlpha = 0;
     this.composer.addPass(renderPass);
     this.bloomPass = new UnrealBloomPass(
-      new THREE.Vector2(this.width, this.height), 1.2, 0.8, 0.3
+      new THREE.Vector2(this.width, this.height), 1.3, 0.9, 0.3
     );
     this.composer.addPass(this.bloomPass);
   }
 
-  setIntensity(v) {
-    this.intensity = Math.max(0, Math.min(1, v));
-  }
+  setIntensity(v) { this.intensity = Math.max(0, Math.min(1, v)); }
 
   animate() {
     requestAnimationFrame(() => this.animate());
     const t = this.clock.getElapsedTime();
-    const I = this.intensity;
-
-    // Hex grid subtle breathe
-    this.hexGrid.material.opacity = 0.03 + Math.sin(t * 0.3) * 0.01 + I * 0.02;
-
-    // Data stream particles fall downward
-    this.streams.forEach(stream => {
-      const pos = stream.points.geometry.attributes.position.array;
-      const count = pos.length / 3;
-      for (let i = 0; i < count; i++) {
-        pos[i * 3 + 1] -= stream.speed * (1 + I * 0.5);
-        if (pos[i * 3 + 1] < -400) {
-          pos[i * 3 + 1] = 400;
-          pos[i * 3] = stream.baseX + (Math.random() - 0.5) * 40;
-        }
-      }
-      stream.points.geometry.attributes.position.needsUpdate = true;
-      stream.points.material.opacity = 0.15 + I * 0.1 + Math.sin(t * 0.5 + stream.speed * 5) * 0.05;
+    // Stars twinkle
+    this.starLayers.forEach(l => {
+      l.points.material.opacity = l.config.opacity * (0.7 + Math.sin(t * 0.4 + l.phase) * 0.3);
     });
-
-    // Circuit trace pulses travel along paths
-    this.circuits.forEach(c => {
-      c.progress += c.speed * (1 + I);
-      if (c.progress > 1) c.progress -= 1;
-
-      const totalSegs = c.segCount - 1;
-      const segFloat = c.progress * totalSegs;
-      const segIdx = Math.floor(segFloat);
-      const segFrac = segFloat - segIdx;
-      const i0 = Math.min(segIdx, totalSegs - 1);
-      const i1 = Math.min(i0 + 1, totalSegs);
-
-      const x = c.vertices[i0 * 3] + (c.vertices[i1 * 3] - c.vertices[i0 * 3]) * segFrac;
-      const y = c.vertices[i0 * 3 + 1] + (c.vertices[i1 * 3 + 1] - c.vertices[i0 * 3 + 1]) * segFrac;
-      const z = c.vertices[i0 * 3 + 2] + (c.vertices[i1 * 3 + 2] - c.vertices[i0 * 3 + 2]) * segFrac;
-
-      const pPos = c.pulse.geometry.attributes.position.array;
-      pPos[0] = x; pPos[1] = y; pPos[2] = z;
-      c.pulse.geometry.attributes.position.needsUpdate = true;
-      c.pulse.material.opacity = 0.4 + Math.sin(t * 4 + c.progress * 10) * 0.2;
+    // Nebulae breathe
+    this.nebulae.forEach(n => {
+      n.sprite.material.opacity = n.baseOpacity * (0.8 + Math.sin(t * 0.15 + n.phase) * 0.2);
     });
-
+    // Galaxy rotates
+    this.galaxy.rotation.y += 0.0005;
+    // Asteroids drift
+    const aPos = this.asteroids.geometry.attributes.position.array;
+    for (let i = 0; i < this.asteroidVels.length; i++) {
+      aPos[i * 3] += this.asteroidVels[i].x;
+      aPos[i * 3 + 1] += this.asteroidVels[i].y;
+      if (aPos[i * 3] > 1000) aPos[i * 3] = -1000;
+    }
+    this.asteroids.geometry.attributes.position.needsUpdate = true;
     // Bloom reacts to load
-    this.bloomPass.strength = 1.0 + I * 0.5;
-
+    this.bloomPass.strength = 1.1 + this.intensity * 0.5;
     this.composer.render();
   }
 }
 
-// ─── Color Interpolation (cyan -> amber -> magenta) ───
-function valueToColor(t) {
-  t = Math.max(0, Math.min(1, t));
-  if (t < 0.5) {
-    const p = t / 0.5;
-    // Cyan (#00F0FF) -> Amber (#FFB800)
-    const r = Math.round(0 + p * 255);
-    const g = Math.round(240 - p * 56);
-    const b = Math.round(255 - p * 255);
-    return `rgb(${r},${g},${b})`;
-  } else {
-    const p = (t - 0.5) / 0.5;
-    // Amber (#FFB800) -> Magenta (#FF2D6A)
-    const r = 255;
-    const g = Math.round(184 - p * 139);
-    const b = Math.round(0 + p * 106);
-    return `rgb(${r},${g},${b})`;
-  }
-}
+// ─── Planet Gauge Row: 7 canvas planet orbitals ───
+const PLANET_CONFIGS = [
+  { name: 'mars',    body: ['#D4854A', '#6B3410'], ring: '#D4854A', type: 'craters' },
+  { name: 'giant',   body: ['#4A6FA5', '#5B4B8A'], ring: '#7B6BAE', type: 'bands' },
+  { name: 'saturn',  body: ['#2BBCB3', '#186B66'], ring: '#2BBCB3', type: 'ringed' },
+  { name: 'lava',    body: ['#8B4513', '#FF4500'], ring: '#FF6347', type: 'lava' },
+  { name: 'ice',     body: ['#B0E0E6', '#4682B4'], ring: '#87CEEB', type: 'ice' },
+  { name: 'sun',     body: ['#FFF8DC', '#FF8C00'], ring: '#FFD700', type: 'sun' },
+  { name: 'binary',  body: ['#FFF0E0', '#FFA07A'], ring: '#FFA07A', type: 'binary' },
+];
 
-// ─── HexArcMeter: SVG hex path with stroke-dashoffset + tick marks ───
-class HexArcMeter {
+class PlanetGaugeRow {
   constructor() {
     this.gauges = [];
-    document.querySelectorAll('.hex-gauge').forEach((el, i) => {
-      const svg = el.querySelector('.hex-svg');
-      const size = 100;
-      const cx = size / 2, cy = size / 2, r = 38;
-
-      // Build hex path
-      const pts = [];
-      for (let k = 0; k < 6; k++) {
-        const a = (Math.PI / 3) * k - Math.PI / 2;
-        pts.push([cx + r * Math.cos(a), cy + r * Math.sin(a)]);
-      }
-      const pathD = pts.map((p, k) => `${k === 0 ? 'M' : 'L'}${p[0].toFixed(2)},${p[1].toFixed(2)}`).join(' ') + ' Z';
-
-      // Calculate total path length
-      let totalLen = 0;
-      for (let k = 0; k < 6; k++) {
-        const p0 = pts[k], p1 = pts[(k + 1) % 6];
-        totalLen += Math.sqrt((p1[0] - p0[0]) ** 2 + (p1[1] - p0[1]) ** 2);
-      }
-
-      // Background hex
-      const bgPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      bgPath.setAttribute('d', pathD);
-      bgPath.setAttribute('fill', 'none');
-      bgPath.setAttribute('stroke', 'rgba(0,240,255,0.08)');
-      bgPath.setAttribute('stroke-width', '2');
-      svg.appendChild(bgPath);
-
-      // Tick marks at each hex vertex
-      for (let k = 0; k < 6; k++) {
-        const a = (Math.PI / 3) * k - Math.PI / 2;
-        const inner = r - 4, outer = r + 4;
-        const tick = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-        tick.setAttribute('x1', (cx + inner * Math.cos(a)).toFixed(2));
-        tick.setAttribute('y1', (cy + inner * Math.sin(a)).toFixed(2));
-        tick.setAttribute('x2', (cx + outer * Math.cos(a)).toFixed(2));
-        tick.setAttribute('y2', (cy + outer * Math.sin(a)).toFixed(2));
-        tick.setAttribute('stroke', 'rgba(0,240,255,0.2)');
-        tick.setAttribute('stroke-width', '1');
-        svg.appendChild(tick);
-      }
-
-      // Fill hex path
-      const fillPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      fillPath.setAttribute('d', pathD);
-      fillPath.setAttribute('fill', 'none');
-      fillPath.setAttribute('stroke', '#00F0FF');
-      fillPath.setAttribute('stroke-width', '3');
-      fillPath.setAttribute('stroke-linecap', 'butt');
-      fillPath.setAttribute('stroke-dasharray', `0 ${totalLen}`);
-      fillPath.style.transition = 'stroke-dasharray 0.6s ease, stroke 0.6s ease, filter 0.6s ease';
-      fillPath.style.filter = 'drop-shadow(0 0 6px #00F0FF) drop-shadow(0 0 12px #00F0FF)';
-      svg.appendChild(fillPath);
-
-      this.gauges.push({ el, svg, fillPath, totalLen });
-    });
+    this.time = 0;
+    for (let i = 0; i < 7; i++) {
+      const canvas = document.getElementById(`planet-${i}`);
+      const ctx = canvas.getContext('2d');
+      this.gauges.push({ canvas, ctx, config: PLANET_CONFIGS[i], value: 0 });
+    }
+    this._animate();
   }
 
   setValue(index, value01) {
-    const g = this.gauges[index];
-    if (!g) return;
-    const v = Math.max(0, Math.min(1, value01));
-    const filled = g.totalLen * v;
-    const gap = g.totalLen - filled;
-    g.fillPath.setAttribute('stroke-dasharray', `${filled} ${gap}`);
-
-    const color = valueToColor(v);
-    g.fillPath.setAttribute('stroke', color);
-    g.fillPath.style.filter = `drop-shadow(0 0 6px ${color}) drop-shadow(0 0 12px ${color})`;
-
-    const numEl = document.getElementById(`hv-${index}`);
-    if (numEl) {
-      numEl.style.color = color;
-      numEl.style.textShadow = `0 0 8px ${color}, 0 0 16px ${color}`;
-    }
+    if (this.gauges[index]) this.gauges[index].value = Math.max(0, Math.min(1, value01));
   }
 
   setDisplay(index, text) {
-    const el = document.getElementById(`hv-${index}`);
+    const el = document.getElementById(`pv-${index}`);
     if (!el) return;
     const old = el.textContent;
     el.textContent = text;
@@ -352,137 +236,525 @@ class HexArcMeter {
       setTimeout(() => el.classList.remove('flash'), 300);
     }
   }
+
+  _animate() {
+    requestAnimationFrame(() => this._animate());
+    this.time += 0.016;
+    this.gauges.forEach(g => this._drawGauge(g));
+  }
+
+  _drawGauge(g) {
+    const { ctx, canvas, config, value } = g;
+    const w = canvas.width, h = canvas.height;
+    const cx = w / 2, cy = h / 2 - 8;
+    const r = 28;
+    ctx.clearRect(0, 0, w, h);
+
+    // Draw planet body
+    this._drawPlanet(ctx, cx, cy, r, config, value);
+
+    // Draw orbital ring
+    this._drawOrbitalRing(ctx, cx, cy + 6, 52, 15, value, config.ring);
+  }
+
+  _drawPlanet(ctx, cx, cy, r, cfg, value) {
+    ctx.save();
+    // Planet shadow/atmosphere
+    const atmo = ctx.createRadialGradient(cx, cy, r * 0.8, cx, cy, r * 1.4);
+    atmo.addColorStop(0, 'rgba(0,0,0,0)');
+    atmo.addColorStop(0.7, `${cfg.body[1]}22`);
+    atmo.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = atmo;
+    ctx.fillRect(cx - r * 1.5, cy - r * 1.5, r * 3, r * 3);
+
+    // Clip to circle
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.clip();
+
+    // Base body gradient (light from upper-left)
+    let bodyColor0 = cfg.body[0], bodyColor1 = cfg.body[1];
+    if (cfg.type === 'lava') {
+      const t = value;
+      const r1 = Math.round(139 + t * 116), g1 = Math.round(69 + t * 0), b1 = Math.round(19 + t * 50);
+      bodyColor0 = `rgb(${r1},${g1},${b1})`;
+    }
+    if (cfg.type === 'ice') {
+      const t = value;
+      const r1 = Math.round(176 + t * 45), g1 = Math.round(224 - t * 60), b1 = Math.round(230 - t * 80);
+      bodyColor0 = `rgb(${r1},${g1},${b1})`;
+    }
+
+    const grad = ctx.createRadialGradient(cx - r * 0.3, cy - r * 0.3, r * 0.1, cx, cy, r);
+    grad.addColorStop(0, bodyColor0);
+    grad.addColorStop(1, bodyColor1);
+    ctx.fillStyle = grad;
+    ctx.fillRect(cx - r, cy - r, r * 2, r * 2);
+
+    // Type-specific features
+    const rand = seededRandom(42 + PLANET_CONFIGS.indexOf(cfg) * 100);
+    if (cfg.type === 'craters') {
+      for (let i = 0; i < 12; i++) {
+        const ox = (rand() - 0.5) * r * 1.6, oy = (rand() - 0.5) * r * 1.6;
+        const cr = 1.5 + rand() * 3;
+        ctx.beginPath();
+        ctx.arc(cx + ox, cy + oy, cr, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(60, 30, 10, ${0.2 + rand() * 0.2})`;
+        ctx.fill();
+      }
+    }
+    if (cfg.type === 'bands') {
+      for (let y = -r; y < r; y += 6) {
+        const bandAlpha = 0.08 + Math.abs(Math.sin(y * 0.15)) * 0.1;
+        ctx.fillStyle = `rgba(90, 70, 140, ${bandAlpha})`;
+        ctx.fillRect(cx - r, cy + y, r * 2, 3);
+      }
+    }
+    if (cfg.type === 'lava') {
+      for (let i = 0; i < 8; i++) {
+        ctx.beginPath();
+        ctx.moveTo(cx + (rand() - 0.5) * r, cy + (rand() - 0.5) * r);
+        ctx.lineTo(cx + (rand() - 0.5) * r, cy + (rand() - 0.5) * r);
+        ctx.strokeStyle = `rgba(255, ${150 + rand() * 100}, 0, ${0.3 + value * 0.4})`;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+    }
+    if (cfg.type === 'ice') {
+      for (let i = 0; i < 8; i++) {
+        const ox = (rand() - 0.5) * r * 1.4, oy = (rand() - 0.5) * r * 1.4;
+        ctx.beginPath();
+        ctx.arc(cx + ox, cy + oy, 2 + rand() * 3, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 255, 255, ${0.15 + rand() * 0.15})`;
+        ctx.fill();
+      }
+    }
+    if (cfg.type === 'sun') {
+      // Corona rays
+      const coronaScale = 0.5 + value * 0.5;
+      for (let a = 0; a < Math.PI * 2; a += 0.3) {
+        const rayLen = r * (0.3 + rand() * 0.4) * coronaScale;
+        ctx.beginPath();
+        ctx.moveTo(cx + Math.cos(a + this.time * 0.2) * r * 0.7, cy + Math.sin(a + this.time * 0.2) * r * 0.7);
+        ctx.lineTo(cx + Math.cos(a + this.time * 0.2) * (r + rayLen), cy + Math.sin(a + this.time * 0.2) * (r + rayLen));
+        ctx.strokeStyle = `rgba(255, 220, 100, ${0.15 * coronaScale})`;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+    }
+
+    ctx.restore();
+
+    // Saturn decorative ring (separate from progress ring)
+    if (cfg.type === 'ringed') {
+      ctx.save();
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, r * 1.5, r * 0.25, -0.15, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(43, 188, 179, 0.25)';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // Binary star: draw second star
+    if (cfg.type === 'binary') {
+      ctx.save();
+      const offset = 12;
+      const r2 = r * 0.65;
+      const grad2 = ctx.createRadialGradient(cx + offset, cy - 4, r2 * 0.2, cx + offset, cy - 4, r2);
+      grad2.addColorStop(0, '#FFF8F0');
+      grad2.addColorStop(0.5, '#FFD090');
+      grad2.addColorStop(1, 'rgba(255,160,100,0)');
+      ctx.beginPath();
+      ctx.arc(cx + offset, cy - 4, r2, 0, Math.PI * 2);
+      ctx.fillStyle = grad2;
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // Sun/binary: outer glow
+    if (cfg.type === 'sun' || cfg.type === 'binary') {
+      const glowR = r * (1.6 + value * 0.4);
+      const glow = ctx.createRadialGradient(cx, cy, r * 0.5, cx, cy, glowR);
+      glow.addColorStop(0, `rgba(255, 215, 0, ${0.1 + value * 0.1})`);
+      glow.addColorStop(0.5, `rgba(255, 180, 60, ${0.04 + value * 0.04})`);
+      glow.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.arc(cx, cy, glowR, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  _drawOrbitalRing(ctx, cx, cy, a, b, value01, color) {
+    // Background ring (dim)
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, a, b, 0, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+
+    // Filled arc
+    if (value01 > 0.001) {
+      const angle = value01 * Math.PI * 2;
+      ctx.save();
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, a, b, 0, -Math.PI / 2, -Math.PI / 2 + angle);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 3;
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 10;
+      ctx.stroke();
+      // Bright tip
+      const tipAngle = -Math.PI / 2 + angle;
+      const tipX = cx + a * Math.cos(tipAngle);
+      const tipY = cy + b * Math.sin(tipAngle);
+      ctx.beginPath();
+      ctx.arc(tipX, tipY, 3, 0, Math.PI * 2);
+      ctx.fillStyle = '#fff';
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 12;
+      ctx.fill();
+      ctx.restore();
+    }
+  }
 }
 
-// ─── CpuCoreGrid ───
-class CpuCoreGrid {
-  constructor(containerId, coreCount = 16) {
-    this.container = document.getElementById(containerId);
-    this.cells = [];
-    for (let i = 0; i < coreCount; i++) {
-      const cell = document.createElement('div');
-      cell.className = 'core-cell';
-      this.container.appendChild(cell);
-      this.cells.push(cell);
+// ─── Constellation Grid (CPU Cores) ───
+class ConstellationGrid {
+  constructor(canvasId, coreCount) {
+    this.canvas = document.getElementById(canvasId);
+    this.ctx = this.canvas.getContext('2d');
+    this.coreCount = coreCount;
+    this.coreLoads = new Array(coreCount).fill(0);
+    const rand = seededRandom(777);
+    const cols = 8, rows = Math.ceil(coreCount / cols);
+    const xStep = this.canvas.width / (cols + 1);
+    const yStep = this.canvas.height / (rows + 1);
+    this.nodes = [];
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        if (this.nodes.length >= coreCount) break;
+        this.nodes.push({
+          x: (c + 1) * xStep + (rand() - 0.5) * xStep * 0.35,
+          y: (r + 1) * yStep + (rand() - 0.5) * yStep * 0.3,
+        });
+      }
+    }
+    // Generate constellation connections (sparse)
+    this.connections = [];
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const idx = r * cols + c;
+        if (idx >= coreCount) break;
+        if (c < cols - 1 && idx + 1 < coreCount && rand() > 0.25)
+          this.connections.push([idx, idx + 1]);
+        if (r < rows - 1 && idx + cols < coreCount && rand() > 0.45)
+          this.connections.push([idx, idx + cols]);
+      }
     }
   }
 
   update(usagePercent) {
-    // Simulate per-core load based on overall usage
-    const usage = usagePercent / 100;
-    this.cells.forEach((cell, i) => {
-      const coreLoad = Math.min(1, Math.max(0, usage + (Math.random() - 0.5) * 0.3));
-      const color = valueToColor(coreLoad);
-      const alpha = 0.1 + coreLoad * 0.7;
-      cell.style.background = color;
-      cell.style.opacity = alpha;
-      cell.style.boxShadow = coreLoad > 0.5 ? `0 0 4px ${color}` : 'none';
-    });
-  }
-}
-
-// ─── FuelBar (VRAM) ───
-class FuelBar {
-  constructor(containerId, segCount = 20) {
-    this.container = document.getElementById(containerId);
-    this.segments = [];
-    for (let i = 0; i < segCount; i++) {
-      const seg = document.createElement('div');
-      seg.className = 'fuel-seg';
-      this.container.appendChild(seg);
-      this.segments.push(seg);
+    const base = usagePercent / 100;
+    for (let i = 0; i < this.coreCount; i++) {
+      this.coreLoads[i] = Math.min(1, Math.max(0, base + (Math.random() - 0.5) * 0.3));
     }
-  }
-
-  update(used, total) {
-    const pct = total > 0 ? used / total : 0;
-    const litCount = Math.round(pct * this.segments.length);
-    this.segments.forEach((seg, i) => {
-      seg.className = 'fuel-seg';
-      if (i < litCount) {
-        if (pct > 0.85) seg.classList.add('crit');
-        else if (pct > 0.65) seg.classList.add('warn');
-        else seg.classList.add('lit');
-      }
-    });
-  }
-}
-
-// ─── ThermalStrip ───
-class ThermalStrip {
-  constructor(containerId) {
-    this.container = document.getElementById(containerId);
-    this.fill = this.container.querySelector('.thermal-fill');
-  }
-
-  update(temp, maxTemp = 90) {
-    const pct = Math.min(1, Math.max(0, temp / maxTemp));
-    // The dark mask covers the unlit portion (right side)
-    this.fill.style.width = `${(1 - pct) * 100}%`;
-  }
-}
-
-// ─── NetworkWaveform: Canvas 2D oscilloscope ───
-class NetworkWaveform {
-  constructor(canvasId) {
-    this.canvas = document.getElementById(canvasId);
-    this.ctx = this.canvas.getContext('2d');
-    this.historyDown = new Array(170).fill(0);
-    this.historyUp = new Array(170).fill(0);
-    this.maxVal = 100;
-  }
-
-  push(down, up) {
-    this.historyDown.push(down);
-    this.historyUp.push(up);
-    if (this.historyDown.length > 170) this.historyDown.shift();
-    if (this.historyUp.length > 170) this.historyUp.shift();
-    // Auto-scale
-    const allMax = Math.max(...this.historyDown, ...this.historyUp, 10);
-    this.maxVal = allMax * 1.2;
     this.draw();
   }
 
   draw() {
     const { ctx, canvas } = this;
-    const w = canvas.width;
-    const h = canvas.height;
-    ctx.clearRect(0, 0, w, h);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Grid lines
-    ctx.strokeStyle = 'rgba(0,240,255,0.04)';
-    ctx.lineWidth = 1;
-    for (let y = 0; y < h; y += 15) {
-      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
-    }
+    // Constellation lines
+    ctx.lineWidth = 0.8;
+    this.connections.forEach(([a, b]) => {
+      const avgLoad = (this.coreLoads[a] + this.coreLoads[b]) / 2;
+      ctx.beginPath();
+      ctx.moveTo(this.nodes[a].x, this.nodes[a].y);
+      ctx.lineTo(this.nodes[b].x, this.nodes[b].y);
+      ctx.strokeStyle = `rgba(200, 210, 230, ${0.05 + avgLoad * 0.12})`;
+      ctx.stroke();
+    });
 
-    // Download trace (cyan)
-    this.drawTrace(this.historyDown, 'rgba(0,240,255,0.7)', 'rgba(0,240,255,0.08)');
-    // Upload trace (magenta)
-    this.drawTrace(this.historyUp, 'rgba(255,45,106,0.6)', 'rgba(255,45,106,0.05)');
+    // Star nodes
+    this.nodes.forEach((node, i) => {
+      const load = this.coreLoads[i];
+      const radius = 2 + load * 4;
+      let color;
+      if (load < 0.25) color = '#C8D0E0'; // white dwarf
+      else if (load < 0.5) color = '#FFD700'; // main sequence yellow
+      else if (load < 0.75) color = '#4169E1'; // blue giant
+      else color = '#FF4500'; // red supergiant
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(node.x, node.y, radius, 0, Math.PI * 2);
+      ctx.fillStyle = color;
+      ctx.globalAlpha = 0.4 + load * 0.6;
+      ctx.shadowColor = color;
+      ctx.shadowBlur = radius * 3;
+      ctx.fill();
+      ctx.restore();
+    });
+  }
+}
+
+// ─── Planetary Ring Viz (Memory) ───
+class PlanetaryRingViz {
+  constructor(canvasId) {
+    this.canvas = document.getElementById(canvasId);
+    this.ctx = this.canvas.getContext('2d');
+    this.data = { percent: 0, swapPercent: 0, loadavg: [0, 0, 0] };
   }
 
-  drawTrace(data, strokeColor, fillColor) {
-    const { ctx, canvas, maxVal } = this;
-    const w = canvas.width;
-    const h = canvas.height;
-    const step = w / (data.length - 1);
+  update(memData) {
+    this.data.percent = memData.percent / 100;
+    this.data.swapPercent = (memData.swapTotal > 0 ? memData.swapUsed / memData.swapTotal : 0);
+    const loads = (memData.loadavg || '0 0 0').split(' ').map(Number);
+    this.data.loadavg = loads;
+    this.draw();
+  }
 
+  draw() {
+    const { ctx, canvas, data } = this;
+    const w = canvas.width, h = canvas.height;
+    const cx = w / 2, cy = h / 2;
+    ctx.clearRect(0, 0, w, h);
+
+    // Planet body (small)
+    const planetR = 14;
+    const grad = ctx.createRadialGradient(cx - 3, cy - 3, 2, cx, cy, planetR);
+    grad.addColorStop(0, '#6B5B95');
+    grad.addColorStop(1, '#3A2D5C');
     ctx.beginPath();
-    ctx.moveTo(0, h);
+    ctx.arc(cx, cy, planetR, 0, Math.PI * 2);
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // Main ring (RAM) — top-down ellipse
+    const ringA = 70, ringB = 18;
+    // Background ring
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, ringA, ringB, 0, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(139, 107, 174, 0.1)';
+    ctx.lineWidth = 8;
+    ctx.stroke();
+    // Used portion (bright)
+    const usedAngle = data.percent * Math.PI * 2;
+    if (usedAngle > 0.01) {
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, ringA, ringB, 0, -Math.PI / 2, -Math.PI / 2 + usedAngle);
+      ctx.strokeStyle = '#8B6BAE';
+      ctx.lineWidth = 8;
+      ctx.shadowColor = '#8B6BAE';
+      ctx.shadowBlur = 10;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
+
+    // Swap ring (inner, smaller)
+    const swapA = 45, swapB = 11;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, swapA, swapB, 0, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(255, 215, 0, 0.08)';
+    ctx.lineWidth = 4;
+    ctx.stroke();
+    const swapAngle = data.swapPercent * Math.PI * 2;
+    if (swapAngle > 0.01) {
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, swapA, swapB, 0, -Math.PI / 2, -Math.PI / 2 + swapAngle);
+      ctx.strokeStyle = '#FFD700';
+      ctx.lineWidth = 4;
+      ctx.shadowColor = '#FFD700';
+      ctx.shadowBlur = 6;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
+
+    // Load average moons (3 dots at varying distances)
+    const moonAngles = [-0.8, 0.3, 1.4];
+    const moonDists = [90, 82, 96];
+    data.loadavg.forEach((load, i) => {
+      const mx = cx + Math.cos(moonAngles[i]) * moonDists[i];
+      const my = cy + Math.sin(moonAngles[i]) * (moonDists[i] * 0.25);
+      const mr = 3 + Math.min(load, 10) * 0.3;
+      ctx.beginPath();
+      ctx.arc(mx, my, mr, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(200, 210, 230, ${0.4 + Math.min(load / 10, 1) * 0.5})`;
+      ctx.shadowColor = '#C8D0E0';
+      ctx.shadowBlur = 4;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      // Label
+      ctx.fillStyle = `rgba(200, 210, 230, 0.5)`;
+      ctx.font = '8px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(load.toFixed(1), mx, my + mr + 9);
+    });
+  }
+}
+
+// ─── Accretion Disk (GPU VRAM) ───
+class AccretionDisk {
+  constructor(canvasId) {
+    this.canvas = document.getElementById(canvasId);
+    this.ctx = this.canvas.getContext('2d');
+    this.value = 0;
+    this.rotation = 0;
+  }
+
+  update(used, total) {
+    this.value = total > 0 ? used / total : 0;
+    this.draw();
+  }
+
+  draw() {
+    const { ctx, canvas, value } = this;
+    const w = canvas.width, h = canvas.height;
+    const cx = w / 2, cy = h / 2;
+    ctx.clearRect(0, 0, w, h);
+    this.rotation += 0.01;
+
+    // Event horizon glow
+    const ehGlow = ctx.createRadialGradient(cx, cy, 8, cx, cy, 55);
+    ehGlow.addColorStop(0, 'rgba(0, 0, 0, 0)');
+    ehGlow.addColorStop(0.3, `rgba(255, 150, 50, ${0.08 + value * 0.12})`);
+    ehGlow.addColorStop(0.6, `rgba(255, 100, 30, ${0.04 + value * 0.06})`);
+    ehGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = ehGlow;
+    ctx.fillRect(0, 0, w, h);
+
+    // Accretion ring background
+    const ringA = 48, ringB = 14;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, ringA, ringB, 0, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(255, 150, 80, 0.08)';
+    ctx.lineWidth = 10;
+    ctx.stroke();
+
+    // Filled accretion ring
+    const angle = value * Math.PI * 2;
+    if (angle > 0.01) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, ringA, ringB, 0, -Math.PI / 2 + this.rotation, -Math.PI / 2 + this.rotation + angle);
+      const ringGrad = ctx.createLinearGradient(cx - ringA, cy, cx + ringA, cy);
+      ringGrad.addColorStop(0, '#FF8C00');
+      ringGrad.addColorStop(0.5, '#FFF0D0');
+      ringGrad.addColorStop(1, '#FF6347');
+      ctx.strokeStyle = ringGrad;
+      ctx.lineWidth = 10;
+      ctx.shadowColor = '#FF8C00';
+      ctx.shadowBlur = 15;
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // Dark void center
+    const voidGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 14);
+    voidGrad.addColorStop(0, 'rgba(0, 0, 5, 0.95)');
+    voidGrad.addColorStop(0.6, 'rgba(0, 0, 10, 0.6)');
+    voidGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.beginPath();
+    ctx.arc(cx, cy, 14, 0, Math.PI * 2);
+    ctx.fillStyle = voidGrad;
+    ctx.fill();
+  }
+}
+
+// ─── Wormhole Viz (Network) ───
+class WormholeViz {
+  constructor(canvasId) {
+    this.canvas = document.getElementById(canvasId);
+    this.ctx = this.canvas.getContext('2d');
+    this.historyDown = new Array(100).fill(0);
+    this.historyUp = new Array(100).fill(0);
+    this.maxVal = 100;
+    this.time = 0;
+  }
+
+  push(down, up) {
+    this.historyDown.push(down);
+    this.historyUp.push(up);
+    if (this.historyDown.length > 100) this.historyDown.shift();
+    if (this.historyUp.length > 100) this.historyUp.shift();
+    this.maxVal = Math.max(...this.historyDown, ...this.historyUp, 10) * 1.2;
+    this.draw();
+  }
+
+  draw() {
+    const { ctx, canvas } = this;
+    const w = canvas.width, h = canvas.height;
+    const cx = w / 2, cy = h / 2;
+    ctx.clearRect(0, 0, w, h);
+    this.time += 0.02;
+
+    // Wormhole concentric rings (background)
+    for (let i = 5; i > 0; i--) {
+      const scale = 0.15 + (i / 5) * 0.85;
+      const rX = (w / 2 - 10) * scale;
+      const rY = (h / 2 - 5) * scale;
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, rX, rY, 0, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(77, 201, 246, ${0.02 + (1 - scale) * 0.06})`;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    // Star field dots in background
+    const rand = seededRandom(99);
+    for (let i = 0; i < 30; i++) {
+      ctx.beginPath();
+      ctx.arc(rand() * w, rand() * h, 0.5 + rand(), 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(200, 210, 230, ${0.1 + rand() * 0.15})`;
+      ctx.fill();
+    }
+
+    // Download trace (blue-cyan)
+    this._drawTrace(this.historyDown, 'rgba(77, 201, 246, 0.7)', 'rgba(77, 201, 246, 0.06)');
+    // Upload trace (purple-gold)
+    this._drawTrace(this.historyUp, 'rgba(139, 107, 174, 0.6)', 'rgba(139, 107, 174, 0.04)');
+
+    // Flowing particles along the traces
+    const t = this.time;
+    const lastDown = this.historyDown[this.historyDown.length - 1] || 0;
+    const lastUp = this.historyUp[this.historyUp.length - 1] || 0;
+    const numParticles = Math.min(8, Math.ceil(lastDown / (this.maxVal * 0.1)));
+    for (let i = 0; i < numParticles; i++) {
+      const px = ((t * 80 + i * 40) % w);
+      const py = cy + Math.sin(t * 2 + i) * 8;
+      ctx.beginPath();
+      ctx.arc(px, py, 1.5, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(77, 201, 246, 0.5)';
+      ctx.fill();
+    }
+    const numUp = Math.min(5, Math.ceil(lastUp / (this.maxVal * 0.1)));
+    for (let i = 0; i < numUp; i++) {
+      const px = w - ((t * 60 + i * 35) % w);
+      const py = cy + Math.sin(t * 2.5 + i + 3) * 6;
+      ctx.beginPath();
+      ctx.arc(px, py, 1.2, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(139, 107, 174, 0.4)';
+      ctx.fill();
+    }
+  }
+
+  _drawTrace(data, strokeColor, fillColor) {
+    const { ctx, canvas, maxVal } = this;
+    const w = canvas.width, h = canvas.height;
+    const step = w / (data.length - 1);
+    ctx.beginPath();
     data.forEach((v, i) => {
       const x = i * step;
-      const y = h - (v / maxVal) * (h - 4);
+      const y = h - (v / maxVal) * (h - 8) - 4;
       if (i === 0) ctx.moveTo(x, y);
       else ctx.lineTo(x, y);
     });
-
-    // Stroke
     ctx.strokeStyle = strokeColor;
     ctx.lineWidth = 1.5;
     ctx.stroke();
-
-    // Fill below
     ctx.lineTo(w, h);
     ctx.lineTo(0, h);
     ctx.closePath();
@@ -491,65 +763,59 @@ class NetworkWaveform {
   }
 }
 
-// ─── ProcessFeed ───
-class ProcessFeed {
-  constructor(containerId) {
-    this.container = document.getElementById(containerId);
-  }
-
-  update(procs) {
-    this.container.innerHTML = procs.map(p =>
-      p.name ? `<div class="proc-line"><span class="proc-name">${p.name}</span><span class="proc-cpu">${p.cpu}%</span></div>` : ''
-    ).filter(Boolean).join('');
-  }
-}
-
-// ─── DockerManifest ───
-class DockerManifest {
-  constructor(containerId) {
-    this.container = document.getElementById(containerId);
-  }
-
+// ─── Docker Fleet ───
+class DockerFleet {
+  constructor(containerId) { this.container = document.getElementById(containerId); }
   update(names) {
     this.container.innerHTML = names.map(n =>
-      `<div class="dock-entry"><span class="dock-dot"></span><span class="dock-name">${n}</span></div>`
+      `<div class="fleet-ship"><span class="ship-light"></span><span class="ship-callsign">${n}</span></div>`
     ).join('');
   }
 }
 
-// ─── Uptime to MET format ───
-function uptimeToMET(uptimeStr) {
-  if (!uptimeStr || uptimeStr === 'N/A') return 'T+00:00:00';
-  // Parse "X days, Y hours, Z minutes" style strings
-  let days = 0, hours = 0, minutes = 0;
-  const dayMatch = uptimeStr.match(/(\d+)\s*day/);
-  const hourMatch = uptimeStr.match(/(\d+)\s*hour/);
-  const minMatch = uptimeStr.match(/(\d+)\s*minute/);
-  if (dayMatch) days = parseInt(dayMatch[1]);
-  if (hourMatch) hours = parseInt(hourMatch[1]);
-  if (minMatch) minutes = parseInt(minMatch[1]);
+// ─── Crew Manifest (Processes) ───
+class CrewManifest {
+  constructor(containerId) { this.container = document.getElementById(containerId); }
+  update(procs) {
+    this.container.innerHTML = procs.map(p => {
+      if (!p.name) return '';
+      const pct = parseFloat(p.cpu) || 0;
+      const width = Math.min(100, pct * 5);
+      return `<div class="crew-entry">
+        <span class="crew-name">${p.name}</span>
+        <div class="crew-thrust"><div class="crew-thrust-fill" style="width:${width}%"></div></div>
+        <span class="crew-pct">${p.cpu}%</span>
+      </div>`;
+    }).filter(Boolean).join('');
+  }
+}
 
-  const totalHours = days * 24 + hours;
-  return `T+${String(totalHours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00`;
+// ─── Uptime to MET format ───
+function uptimeToMET(str) {
+  if (!str || str === 'N/A') return 'T+00:00:00';
+  let d = 0, h = 0, m = 0;
+  const dm = str.match(/(\d+)\s*day/);
+  const hm = str.match(/(\d+)\s*hour/);
+  const mm = str.match(/(\d+)\s*minute/);
+  if (dm) d = parseInt(dm[1]);
+  if (hm) h = parseInt(hm[1]);
+  if (mm) m = parseInt(mm[1]);
+  return `T+${String(d * 24 + h).padStart(2, '0')}:${String(m).padStart(2, '0')}:00`;
 }
 
 // ─── Main App ───
 class HoloStatsApp {
   constructor() {
     this.bg = new BackgroundScene();
-    this.stats = null;
     this.glitchEl = document.getElementById('glitch-flash');
+    this.planetGauges = new PlanetGaugeRow();
+    this.constellation = new ConstellationGrid('constellation-grid', 32);
+    this.ringViz = new PlanetaryRingViz('ring-viz');
+    this.accretionDisk = new AccretionDisk('accretion-disk');
+    this.wormhole = new WormholeViz('wormhole-viz');
+    this.fleet = new DockerFleet('docker-fleet');
+    this.manifest = new CrewManifest('crew-manifest');
 
-    // Initialize widgets
-    this.hexMeter = new HexArcMeter();
-    this.coreGrid = new CpuCoreGrid('cpu-core-grid', 32);
-    this.fuelBar = new FuelBar('vram-fuel-bar', 20);
-    this.thermalStrip = new ThermalStrip('gpu-thermal-strip');
-    this.waveform = new NetworkWaveform('net-waveform');
-    this.processFeed = new ProcessFeed('process-feed');
-    this.dockerManifest = new DockerManifest('docker-manifest');
-
-    // Cache DOM elements
     this.el = {
       time: document.getElementById('time-display'),
       date: document.getElementById('date-display'),
@@ -564,14 +830,9 @@ class HoloStatsApp {
       ramFree: document.getElementById('stat-ram-free'),
       swap: document.getElementById('stat-swap'),
       loadavg: document.getElementById('stat-loadavg'),
-      procs: document.getElementById('stat-procs'),
-      storageRoot: document.getElementById('stat-storage-root'),
-      storageHome: document.getElementById('stat-storage-home'),
-      storageCave: document.getElementById('stat-storage-cave'),
       diskRead: document.getElementById('stat-disk-read'),
       diskWrite: document.getElementById('stat-disk-write'),
-      gpuModel: document.getElementById('stat-gpu-model'),
-      gpuDriver: document.getElementById('stat-gpu-driver'),
+      gpuRegistry: document.getElementById('stat-gpu-registry'),
       gpuUsage: document.getElementById('stat-gpu-usage'),
       gpuTemp: document.getElementById('stat-gpu-temp'),
       gpuFan: document.getElementById('stat-gpu-fan'),
@@ -583,15 +844,12 @@ class HoloStatsApp {
       dockerActive: document.getElementById('stat-docker-active'),
     };
 
-    // Stats injection from Python backend
     window.updateStats = (jsonStr) => {
       try {
         const data = typeof jsonStr === 'string' ? JSON.parse(jsonStr) : jsonStr;
-        this.stats = data;
         this.updateGauges(data);
         this.updatePanels(data);
         this.updateWidgets(data);
-        // Drive background intensity from average CPU+GPU load
         const avgLoad = ((data.cpu.usage || 0) + (data.gpu.usage || 0)) / 200;
         this.bg.setIntensity(avgLoad);
       } catch (e) {
@@ -605,14 +863,13 @@ class HoloStatsApp {
   }
 
   scheduleGlitch() {
-    const delay = 5000 + Math.random() * 12000;
     setTimeout(() => {
       if (this.glitchEl) {
         this.glitchEl.classList.add('active');
-        setTimeout(() => this.glitchEl.classList.remove('active'), 200);
+        setTimeout(() => this.glitchEl.classList.remove('active'), 180);
       }
       this.scheduleGlitch();
-    }, delay);
+    }, 6000 + Math.random() * 15000);
   }
 
   updateTime() {
@@ -620,33 +877,26 @@ class HoloStatsApp {
     const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
     const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
     if (this.el.time) this.el.time.textContent = now.toLocaleTimeString('en-GB', { hour12: false });
-    if (this.el.date) this.el.date.textContent = `${days[now.getDay()]} ${String(now.getDate()).padStart(2, '0')} ${months[now.getMonth()]} ${now.getFullYear()}`;
+    if (this.el.date) this.el.date.textContent = `STARDATE ${days[now.getDay()]} ${String(now.getDate()).padStart(2, '0')}.${months[now.getMonth()]}.${now.getFullYear()}`;
   }
 
   updateGauges(s) {
     const cpuTempNum = parseFloat(String(s.cpu.temp).replace(/[^0-9.]/g, '')) || 0;
     const cpuPwrLimit = s.cpu.powerLimit || 170;
     const gpuPwrLimit = s.gpu.powerLimit || 600;
-
     const values = [
-      s.cpu.usage / 100,
-      s.memory.percent / 100,
-      s.gpu.usage / 100,
-      cpuTempNum / 100,
-      s.gpu.temp / 100,
-      s.cpu.power / cpuPwrLimit,
-      s.gpu.power / gpuPwrLimit,
+      s.cpu.usage / 100, s.memory.percent / 100, s.gpu.usage / 100,
+      cpuTempNum / 100, s.gpu.temp / 100,
+      s.cpu.power / cpuPwrLimit, s.gpu.power / gpuPwrLimit,
     ];
     const displays = [
-      `${s.cpu.usage}`, `${s.memory.percent}`,
-      `${s.gpu.usage}`,
+      `${s.cpu.usage}`, `${s.memory.percent}`, `${s.gpu.usage}`,
       `${Math.round(cpuTempNum)}`, `${s.gpu.temp}`,
       `${s.cpu.power}`, `${s.gpu.power.toFixed(0)}`,
     ];
-
     values.forEach((v, i) => {
-      this.hexMeter.setValue(i, v);
-      this.hexMeter.setDisplay(i, displays[i]);
+      this.planetGauges.setValue(i, v);
+      this.planetGauges.setDisplay(i, displays[i]);
     });
   }
 
@@ -658,67 +908,93 @@ class HoloStatsApp {
       if (bytes > 1e6) return (bytes / 1e6).toFixed(0) + ' MiB';
       return (bytes / 1024).toFixed(0) + ' KiB';
     };
-
     const setRow = (elem, label, val, cls) => {
       if (!elem) return;
       elem.innerHTML = `<span class="lbl">${label}</span><span class="val ${cls || ''}">${val}</span>`;
     };
 
-    // CPU Panel
+    // CPU
     setRow(el.cpuModel, 'MODEL', s.cpu.model);
     setRow(el.cpuLoad, 'LOAD', `${s.cpu.usage}%`, 'val-cyan');
-    setRow(el.cpuFreq, 'FREQ', `${s.cpu.freq} GHz`);
-    setRow(el.cpuTemp, 'TEMP', s.cpu.temp, 'val-amber');
+    setRow(el.cpuFreq, 'IMPULSE', `${s.cpu.freq} GHz`, 'val-gold');
+    setRow(el.cpuTemp, 'THERMAL', s.cpu.temp, 'val-orange');
 
-    // Memory Panel
+    // Memory
     setRow(el.ram, 'RAM', `${fmt(s.memory.used)} / ${fmt(s.memory.total)}`);
-    setRow(el.ramPct, 'USED', `${s.memory.percent}%`, 'val-cyan');
-    setRow(el.ramFree, 'FREE', fmt(s.memory.free), 'val-green');
+    setRow(el.ramPct, 'USED', `${s.memory.percent}%`, 'val-purple');
+    setRow(el.ramFree, 'FREE', fmt(s.memory.free), 'val-cyan');
     setRow(el.swap, 'SWAP', `${fmt(s.memory.swapUsed)} / ${fmt(s.memory.swapTotal)}`);
     setRow(el.loadavg, 'LOAD', s.system.loadavg);
-    setRow(el.procs, 'PROCS', `${s.system.totalProcs} / ${s.system.runningProcs} run`);
 
-    // Storage Panel
-    setRow(el.storageRoot, '/', `${fmt(s.storage.root.used)} / ${fmt(s.storage.root.total)}  ${s.storage.root.percent}%`);
-    setRow(el.storageHome, '/home', `${fmt(s.storage.home.used)} / ${fmt(s.storage.home.total)}  ${s.storage.home.percent}%`);
-    setRow(el.storageCave, '/cave', `${fmt(s.storage.cave.used)} / ${fmt(s.storage.cave.total)}  ${s.storage.cave.percent}%`);
+    // Storage cargo bays
+    const updateCargo = (id, data) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const fill = el.querySelector('.cargo-fill');
+      const text = el.querySelector('.cargo-text');
+      if (fill) fill.style.width = `${data.percent}%`;
+      if (text) text.textContent = `${data.percent}%`;
+      // Color shift at high usage
+      if (fill && data.percent > 80) {
+        fill.style.background = `linear-gradient(90deg, #FF6347, #FF8C00)`;
+      } else if (fill && data.percent > 60) {
+        fill.style.background = `linear-gradient(90deg, #FFD700, #FFA07A)`;
+      }
+    };
+    updateCargo('cargo-root', s.storage.root);
+    updateCargo('cargo-home', s.storage.home);
+    updateCargo('cargo-cave', s.storage.cave);
+
+    // Comet trails for disk I/O
     if (s.diskIO) {
-      setRow(el.diskRead, 'READ', `${s.diskIO.read} KiB/s`, 'val-green');
-      setRow(el.diskWrite, 'WRITE', `${s.diskIO.write} KiB/s`, 'val-magenta');
+      const maxIO = 50000;
+      const readEl = document.querySelector('#stat-disk-read');
+      const writeEl = document.querySelector('#stat-disk-write');
+      if (readEl) {
+        const head = readEl.querySelector('.comet-head');
+        const val = readEl.querySelector('.val');
+        if (head) head.style.width = `${Math.min(100, (s.diskIO.read / maxIO) * 100)}%`;
+        if (val) { val.textContent = `${s.diskIO.read} KiB/s`; val.className = 'val val-cyan'; }
+      }
+      if (writeEl) {
+        const head = writeEl.querySelector('.comet-head');
+        const val = writeEl.querySelector('.val');
+        if (head) head.style.width = `${Math.min(100, (s.diskIO.write / maxIO) * 100)}%`;
+        if (val) { val.textContent = `${s.diskIO.write} KiB/s`; val.className = 'val val-orange'; }
+      }
     }
 
-    // GPU Panel
-    setRow(el.gpuModel, 'MODEL', s.gpu.name);
-    setRow(el.gpuDriver, 'DRIVER', s.gpu.driver);
-    setRow(el.gpuUsage, 'USAGE', `${s.gpu.usage}%`, 'val-cyan');
-    setRow(el.gpuTemp, 'TEMP', `${s.gpu.temp}°C`, 'val-amber');
-    setRow(el.gpuFan, 'FAN', `${s.gpu.fan}%`);
-    if (el.vramText) el.vramText.textContent = `${s.gpu.vramUsed} / ${s.gpu.vramTotal} MiB`;
+    // GPU
+    setRow(el.gpuRegistry, 'REGISTRY', `${s.gpu.name} // FW:${s.gpu.driver}`);
+    setRow(el.gpuUsage, 'THROTTLE', `${s.gpu.usage}%`, 'val-cyan');
+    setRow(el.gpuTemp, 'THERMAL', `${s.gpu.temp}°C`, 'val-orange');
+    setRow(el.gpuFan, 'THRUSTER', `${s.gpu.fan}%`);
+    if (el.vramText) el.vramText.textContent = `VRAM: ${s.gpu.vramUsed} / ${s.gpu.vramTotal} MiB`;
 
-    // Network Panel
-    setRow(el.netIp, 'IP', s.network.ip);
-    setRow(el.netType, 'TYPE', s.network.type);
-    setRow(el.netDown, 'DOWN', `${s.network.down} KiB/s`, 'val-green');
-    setRow(el.netUp, 'UP', `${s.network.up} KiB/s`, 'val-magenta');
+    // Network
+    setRow(el.netIp, 'COORD', s.network.ip);
+    setRow(el.netType, 'LINK', s.network.type);
+    setRow(el.netDown, 'DOWNLINK', `${s.network.down} KiB/s`, 'val-cyan');
+    setRow(el.netUp, 'UPLINK', `${s.network.up} KiB/s`, 'val-purple');
 
-    // Docker Panel
-    setRow(el.dockerActive, 'ACTIVE', `${s.docker.count} containers`, 'val-green');
+    // Docker
+    setRow(el.dockerActive, 'FLEET', `${s.docker.count} vessels`, 'val-green');
 
     // Top bar
     if (el.met) el.met.textContent = uptimeToMET(s.system.uptime);
     if (el.netStatus) {
       el.netStatus.textContent = s.network.type;
-      el.netStatus.style.color = s.network.type === 'Disconnected' ? '#FF2D6A' : '#00FF88';
+      el.netStatus.style.color = s.network.type === 'Disconnected' ? '#FF6347' : '#00FF88';
     }
   }
 
   updateWidgets(s) {
-    this.coreGrid.update(s.cpu.usage);
-    this.fuelBar.update(s.gpu.vramUsed, s.gpu.vramTotal);
-    this.thermalStrip.update(s.gpu.temp);
-    this.waveform.push(s.network.down, s.network.up);
-    this.processFeed.update(s.cpu.top || []);
-    this.dockerManifest.update(s.docker.names || []);
+    this.constellation.update(s.cpu.usage);
+    this.ringViz.update({ ...s.memory, loadavg: s.system.loadavg });
+    this.accretionDisk.update(s.gpu.vramUsed, s.gpu.vramTotal);
+    this.wormhole.push(s.network.down, s.network.up);
+    this.fleet.update(s.docker.names || []);
+    this.manifest.update(s.cpu.top || []);
   }
 }
 

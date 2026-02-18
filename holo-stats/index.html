@@ -15,16 +15,10 @@
   <div class="glitch-flash" id="glitch-flash"></div>
 
   <div id="overlay">
-    <!-- Corner brackets -->
-    <div class="corner-bracket tl"></div>
-    <div class="corner-bracket tr"></div>
-    <div class="corner-bracket bl"></div>
-    <div class="corner-bracket br"></div>
-
-    <!-- Top bar: time + MET + net status -->
+    <!-- Top bar: ship console -->
     <div id="top-bar">
       <div id="top-left">
-        <span id="date-display">Loading...</span>
+        <span id="date-display">STARDATE --</span>
       </div>
       <div id="top-center">
         <span id="time-display">--:--:--</span>
@@ -32,133 +26,159 @@
       <div id="top-right">
         <span class="top-label">MET</span>
         <span id="met-display">T+00:00:00</span>
-        <span class="top-sep">|</span>
-        <span class="top-label">NET</span>
+        <span class="top-sep">&diams;</span>
+        <span class="top-label">COMMS</span>
         <span id="net-status">--</span>
       </div>
     </div>
 
-    <!-- Hex gauge row -->
+    <!-- Planet orbital gauge row -->
     <div id="gauge-row">
-      <div class="hex-gauge" data-gauge="0">
-        <svg class="hex-svg" viewBox="0 0 100 100"></svg>
-        <div class="hex-val"><span class="hv-num" id="hv-0">--</span><span class="hv-unit">%</span></div>
-        <div class="hex-lbl">CPU</div>
+      <div class="planet-gauge">
+        <canvas id="planet-0" width="150" height="130"></canvas>
+        <div class="planet-val"><span class="pv-num" id="pv-0">--</span><span class="pv-unit">%</span></div>
+        <div class="planet-lbl">CPU</div>
       </div>
-      <div class="hex-gauge" data-gauge="1">
-        <svg class="hex-svg" viewBox="0 0 100 100"></svg>
-        <div class="hex-val"><span class="hv-num" id="hv-1">--</span><span class="hv-unit">%</span></div>
-        <div class="hex-lbl">RAM</div>
+      <div class="planet-gauge">
+        <canvas id="planet-1" width="150" height="130"></canvas>
+        <div class="planet-val"><span class="pv-num" id="pv-1">--</span><span class="pv-unit">%</span></div>
+        <div class="planet-lbl">RAM</div>
       </div>
-      <div class="hex-gauge" data-gauge="2">
-        <svg class="hex-svg" viewBox="0 0 100 100"></svg>
-        <div class="hex-val"><span class="hv-num" id="hv-2">--</span><span class="hv-unit">%</span></div>
-        <div class="hex-lbl">GPU</div>
+      <div class="planet-gauge">
+        <canvas id="planet-2" width="150" height="130"></canvas>
+        <div class="planet-val"><span class="pv-num" id="pv-2">--</span><span class="pv-unit">%</span></div>
+        <div class="planet-lbl">GPU</div>
       </div>
-      <div class="hex-gauge" data-gauge="3">
-        <svg class="hex-svg" viewBox="0 0 100 100"></svg>
-        <div class="hex-val"><span class="hv-num" id="hv-3">--</span><span class="hv-unit">&deg;C</span></div>
-        <div class="hex-lbl">CPU TMP</div>
+      <div class="planet-gauge">
+        <canvas id="planet-3" width="150" height="130"></canvas>
+        <div class="planet-val"><span class="pv-num" id="pv-3">--</span><span class="pv-unit">&deg;C</span></div>
+        <div class="planet-lbl">CPU TMP</div>
       </div>
-      <div class="hex-gauge" data-gauge="4">
-        <svg class="hex-svg" viewBox="0 0 100 100"></svg>
-        <div class="hex-val"><span class="hv-num" id="hv-4">--</span><span class="hv-unit">&deg;C</span></div>
-        <div class="hex-lbl">GPU TMP</div>
+      <div class="planet-gauge">
+        <canvas id="planet-4" width="150" height="130"></canvas>
+        <div class="planet-val"><span class="pv-num" id="pv-4">--</span><span class="pv-unit">&deg;C</span></div>
+        <div class="planet-lbl">GPU TMP</div>
       </div>
-      <div class="hex-gauge" data-gauge="5">
-        <svg class="hex-svg" viewBox="0 0 100 100"></svg>
-        <div class="hex-val"><span class="hv-num" id="hv-5">--</span><span class="hv-unit">W</span></div>
-        <div class="hex-lbl">CPU PWR</div>
+      <div class="planet-gauge">
+        <canvas id="planet-5" width="150" height="130"></canvas>
+        <div class="planet-val"><span class="pv-num" id="pv-5">--</span><span class="pv-unit">W</span></div>
+        <div class="planet-lbl">CPU PWR</div>
       </div>
-      <div class="hex-gauge" data-gauge="6">
-        <svg class="hex-svg" viewBox="0 0 100 100"></svg>
-        <div class="hex-val"><span class="hv-num" id="hv-6">--</span><span class="hv-unit">W</span></div>
-        <div class="hex-lbl">GPU PWR</div>
+      <div class="planet-gauge">
+        <canvas id="planet-6" width="150" height="130"></canvas>
+        <div class="planet-val"><span class="pv-num" id="pv-6">--</span><span class="pv-unit">W</span></div>
+        <div class="planet-lbl">GPU PWR</div>
       </div>
     </div>
 
-    <!-- Panel grid: 3 columns x 2 rows -->
+    <!-- Panel grid: 3x2 viewport panels -->
     <div id="panel-grid">
       <!-- CPU Panel -->
-      <div class="panel" id="panel-cpu">
-        <div class="panel-header">CPU</div>
+      <div class="panel viewport">
+        <div class="nav-light tl"></div><div class="nav-light tr"></div>
+        <div class="nav-light bl"></div><div class="nav-light br"></div>
+        <div class="panel-header"><span class="star-icon">&#10022;</span> CPU</div>
         <div class="panel-body">
+          <canvas id="constellation-grid" width="380" height="100"></canvas>
           <div class="stat-row" id="stat-cpu-model"><span class="lbl">MODEL</span><span class="val">--</span></div>
           <div class="stat-row" id="stat-cpu-load"><span class="lbl">LOAD</span><span class="val">--%</span></div>
-          <div class="stat-row" id="stat-cpu-freq"><span class="lbl">FREQ</span><span class="val">-- GHz</span></div>
-          <div class="stat-row" id="stat-cpu-temp"><span class="lbl">TEMP</span><span class="val">--</span></div>
-          <div class="core-grid-label">CORE UTILIZATION</div>
-          <div id="cpu-core-grid" class="core-grid"></div>
+          <div class="stat-row" id="stat-cpu-freq"><span class="lbl">IMPULSE</span><span class="val">-- GHz</span></div>
+          <div class="stat-row" id="stat-cpu-temp"><span class="lbl">THERMAL</span><span class="val">--</span></div>
         </div>
       </div>
 
       <!-- Memory Panel -->
-      <div class="panel" id="panel-memory">
-        <div class="panel-header">MEMORY</div>
+      <div class="panel viewport">
+        <div class="nav-light tl"></div><div class="nav-light tr"></div>
+        <div class="nav-light bl"></div><div class="nav-light br"></div>
+        <div class="panel-header"><span class="star-icon">&#10022;</span> MEMORY</div>
         <div class="panel-body">
+          <canvas id="ring-viz" width="380" height="110"></canvas>
           <div class="stat-row" id="stat-ram"><span class="lbl">RAM</span><span class="val">-- / --</span></div>
           <div class="stat-row" id="stat-ram-pct"><span class="lbl">USED</span><span class="val">--%</span></div>
           <div class="stat-row" id="stat-ram-free"><span class="lbl">FREE</span><span class="val">--</span></div>
           <div class="stat-row" id="stat-swap"><span class="lbl">SWAP</span><span class="val">-- / --</span></div>
           <div class="stat-row" id="stat-loadavg"><span class="lbl">LOAD</span><span class="val">--</span></div>
-          <div class="stat-row" id="stat-procs"><span class="lbl">PROCS</span><span class="val">--</span></div>
         </div>
       </div>
 
       <!-- Storage Panel -->
-      <div class="panel" id="panel-storage">
-        <div class="panel-header">STORAGE</div>
+      <div class="panel viewport">
+        <div class="nav-light tl"></div><div class="nav-light tr"></div>
+        <div class="nav-light bl"></div><div class="nav-light br"></div>
+        <div class="panel-header"><span class="star-icon">&#10022;</span> STORAGE</div>
         <div class="panel-body">
-          <div class="stat-row" id="stat-storage-root"><span class="lbl">/</span><span class="val">-- / --</span></div>
-          <div class="stat-row" id="stat-storage-home"><span class="lbl">/home</span><span class="val">-- / --</span></div>
-          <div class="stat-row" id="stat-storage-cave"><span class="lbl">/cave</span><span class="val">-- / --</span></div>
-          <div class="stat-row" id="stat-disk-read"><span class="lbl">READ</span><span class="val">-- KiB/s</span></div>
-          <div class="stat-row" id="stat-disk-write"><span class="lbl">WRITE</span><span class="val">-- KiB/s</span></div>
+          <div class="cargo-bay" id="cargo-root">
+            <span class="cargo-label">/</span>
+            <div class="cargo-capsule"><div class="cargo-fill"></div></div>
+            <span class="cargo-text">--</span>
+          </div>
+          <div class="cargo-bay" id="cargo-home">
+            <span class="cargo-label">/home</span>
+            <div class="cargo-capsule"><div class="cargo-fill"></div></div>
+            <span class="cargo-text">--</span>
+          </div>
+          <div class="cargo-bay" id="cargo-cave">
+            <span class="cargo-label">/cave</span>
+            <div class="cargo-capsule"><div class="cargo-fill"></div></div>
+            <span class="cargo-text">--</span>
+          </div>
+          <div class="stat-row io-row" id="stat-disk-read">
+            <span class="lbl">READ</span>
+            <div class="comet-trail read"><div class="comet-head"></div></div>
+            <span class="val">-- KiB/s</span>
+          </div>
+          <div class="stat-row io-row" id="stat-disk-write">
+            <span class="lbl">WRITE</span>
+            <div class="comet-trail write"><div class="comet-head"></div></div>
+            <span class="val">-- KiB/s</span>
+          </div>
         </div>
       </div>
 
       <!-- GPU Panel -->
-      <div class="panel" id="panel-gpu">
-        <div class="panel-header">GPU</div>
+      <div class="panel viewport">
+        <div class="nav-light tl"></div><div class="nav-light tr"></div>
+        <div class="nav-light bl"></div><div class="nav-light br"></div>
+        <div class="panel-header"><span class="star-icon">&#10022;</span> GPU</div>
         <div class="panel-body">
-          <div class="stat-row" id="stat-gpu-model"><span class="lbl">MODEL</span><span class="val">--</span></div>
-          <div class="stat-row" id="stat-gpu-driver"><span class="lbl">DRIVER</span><span class="val">--</span></div>
-          <div class="stat-row" id="stat-gpu-usage"><span class="lbl">USAGE</span><span class="val">--%</span></div>
-          <div class="stat-row" id="stat-gpu-temp"><span class="lbl">TEMP</span><span class="val">--</span></div>
-          <div class="stat-row" id="stat-gpu-fan"><span class="lbl">FAN</span><span class="val">--%</span></div>
-          <div class="vram-label">VRAM</div>
-          <div id="vram-fuel-bar" class="fuel-bar"></div>
-          <div id="vram-text" class="fuel-text">-- / -- MiB</div>
-          <div class="thermal-label">THERMAL</div>
-          <div id="gpu-thermal-strip" class="thermal-strip"><div class="thermal-fill"></div></div>
+          <canvas id="accretion-disk" width="380" height="100"></canvas>
+          <div class="stat-row registry-row" id="stat-gpu-registry"><span class="lbl">REGISTRY</span><span class="val">--</span></div>
+          <div class="stat-row" id="stat-gpu-usage"><span class="lbl">THROTTLE</span><span class="val">--%</span></div>
+          <div class="stat-row" id="stat-gpu-temp"><span class="lbl">THERMAL</span><span class="val">--</span></div>
+          <div class="stat-row" id="stat-gpu-fan"><span class="lbl">THRUSTER</span><span class="val">--%</span></div>
+          <div id="vram-text" class="vram-text">VRAM: -- / -- MiB</div>
         </div>
       </div>
 
       <!-- Network Panel -->
-      <div class="panel" id="panel-network">
-        <div class="panel-header">NETWORK</div>
+      <div class="panel viewport">
+        <div class="nav-light tl"></div><div class="nav-light tr"></div>
+        <div class="nav-light bl"></div><div class="nav-light br"></div>
+        <div class="panel-header"><span class="star-icon">&#10022;</span> NETWORK</div>
         <div class="panel-body">
-          <div class="stat-row" id="stat-net-ip"><span class="lbl">IP</span><span class="val">--</span></div>
-          <div class="stat-row" id="stat-net-type"><span class="lbl">TYPE</span><span class="val">--</span></div>
-          <div class="stat-row" id="stat-net-down"><span class="lbl">DOWN</span><span class="val">-- KiB/s</span></div>
-          <div class="stat-row" id="stat-net-up"><span class="lbl">UP</span><span class="val">-- KiB/s</span></div>
-          <canvas id="net-waveform" width="340" height="120"></canvas>
+          <div class="stat-row" id="stat-net-ip"><span class="lbl">COORD</span><span class="val">--</span></div>
+          <div class="stat-row" id="stat-net-type"><span class="lbl">LINK</span><span class="val">--</span></div>
+          <div class="stat-row" id="stat-net-down"><span class="lbl">DOWNLINK</span><span class="val">-- KiB/s</span></div>
+          <div class="stat-row" id="stat-net-up"><span class="lbl">UPLINK</span><span class="val">-- KiB/s</span></div>
+          <canvas id="wormhole-viz" width="380" height="120"></canvas>
         </div>
       </div>
 
       <!-- Docker Panel -->
-      <div class="panel" id="panel-docker">
-        <div class="panel-header">DOCKER</div>
+      <div class="panel viewport">
+        <div class="nav-light tl"></div><div class="nav-light tr"></div>
+        <div class="nav-light bl"></div><div class="nav-light br"></div>
+        <div class="panel-header"><span class="star-icon">&#10022;</span> DOCKER</div>
         <div class="panel-body">
-          <div class="stat-row" id="stat-docker-active"><span class="lbl">ACTIVE</span><span class="val">--</span></div>
-          <div id="docker-manifest" class="docker-manifest"></div>
-          <div class="process-feed-label">TOP PROCESSES</div>
-          <div id="process-feed" class="process-feed"></div>
+          <div class="stat-row" id="stat-docker-active"><span class="lbl">FLEET</span><span class="val">--</span></div>
+          <div id="docker-fleet" class="docker-fleet"></div>
+          <div class="manifest-label">CREW MANIFEST</div>
+          <div id="crew-manifest" class="crew-manifest"></div>
         </div>
       </div>
     </div>
 
-    <!-- Bottom divider -->
     <div class="divider"></div>
   </div>
 
