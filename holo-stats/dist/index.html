@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>HoloStats</title>
-  <script type="module" crossorigin src="./assets/index-C84P5YG3.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-Cs18Z3bT.css">
+  <script type="module" crossorigin src="./assets/index-D3c-YfU0.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-BNoOtC5C.css">
 </head>
 <body>
   <div id="canvas-container"></div>
@@ -16,166 +16,166 @@
   <div class="glitch-flash" id="glitch-flash"></div>
 
   <div id="overlay">
-    <!-- Top bar: ship console -->
+    <!-- Top bar: druid's console -->
     <div id="top-bar">
       <div id="top-left">
-        <span id="date-display">STARDATE --</span>
+        <span id="date-display">SEASON --</span>
       </div>
       <div id="top-center">
         <span id="time-display">--:--:--</span>
       </div>
       <div id="top-right">
-        <span class="top-label">MET</span>
+        <span class="top-label">GROWTH</span>
         <span id="met-display">T+00:00:00</span>
-        <span class="top-sep">&diams;</span>
-        <span class="top-label">COMMS</span>
+        <span class="top-sep">&#9752;</span>
+        <span class="top-label">ROOTS</span>
         <span id="net-status">--</span>
       </div>
     </div>
 
-    <!-- Planet orbital gauge row -->
+    <!-- Tree canopy gauge row -->
     <div id="gauge-row">
-      <div class="planet-gauge">
-        <canvas id="planet-0" width="150" height="130"></canvas>
-        <div class="planet-val"><span class="pv-num" id="pv-0">--</span><span class="pv-unit">%</span></div>
-        <div class="planet-lbl">CPU</div>
+      <div class="tree-gauge">
+        <canvas id="tree-0" width="150" height="130"></canvas>
+        <div class="tree-val"><span class="tv-num" id="tv-0">--</span><span class="tv-unit">%</span></div>
+        <div class="tree-lbl">CPU</div>
       </div>
-      <div class="planet-gauge">
-        <canvas id="planet-1" width="150" height="130"></canvas>
-        <div class="planet-val"><span class="pv-num" id="pv-1">--</span><span class="pv-unit">%</span></div>
-        <div class="planet-lbl">RAM</div>
+      <div class="tree-gauge">
+        <canvas id="tree-1" width="150" height="130"></canvas>
+        <div class="tree-val"><span class="tv-num" id="tv-1">--</span><span class="tv-unit">%</span></div>
+        <div class="tree-lbl">RAM</div>
       </div>
-      <div class="planet-gauge">
-        <canvas id="planet-2" width="150" height="130"></canvas>
-        <div class="planet-val"><span class="pv-num" id="pv-2">--</span><span class="pv-unit">%</span></div>
-        <div class="planet-lbl">GPU</div>
+      <div class="tree-gauge">
+        <canvas id="tree-2" width="150" height="130"></canvas>
+        <div class="tree-val"><span class="tv-num" id="tv-2">--</span><span class="tv-unit">%</span></div>
+        <div class="tree-lbl">GPU</div>
       </div>
-      <div class="planet-gauge">
-        <canvas id="planet-3" width="150" height="130"></canvas>
-        <div class="planet-val"><span class="pv-num" id="pv-3">--</span><span class="pv-unit">&deg;C</span></div>
-        <div class="planet-lbl">CPU TMP</div>
+      <div class="tree-gauge">
+        <canvas id="tree-3" width="150" height="130"></canvas>
+        <div class="tree-val"><span class="tv-num" id="tv-3">--</span><span class="tv-unit">&deg;C</span></div>
+        <div class="tree-lbl">CPU TMP</div>
       </div>
-      <div class="planet-gauge">
-        <canvas id="planet-4" width="150" height="130"></canvas>
-        <div class="planet-val"><span class="pv-num" id="pv-4">--</span><span class="pv-unit">&deg;C</span></div>
-        <div class="planet-lbl">GPU TMP</div>
+      <div class="tree-gauge">
+        <canvas id="tree-4" width="150" height="130"></canvas>
+        <div class="tree-val"><span class="tv-num" id="tv-4">--</span><span class="tv-unit">&deg;C</span></div>
+        <div class="tree-lbl">GPU TMP</div>
       </div>
-      <div class="planet-gauge">
-        <canvas id="planet-5" width="150" height="130"></canvas>
-        <div class="planet-val"><span class="pv-num" id="pv-5">--</span><span class="pv-unit">W</span></div>
-        <div class="planet-lbl">CPU PWR</div>
+      <div class="tree-gauge">
+        <canvas id="tree-5" width="150" height="130"></canvas>
+        <div class="tree-val"><span class="tv-num" id="tv-5">--</span><span class="tv-unit">W</span></div>
+        <div class="tree-lbl">CPU PWR</div>
       </div>
-      <div class="planet-gauge">
-        <canvas id="planet-6" width="150" height="130"></canvas>
-        <div class="planet-val"><span class="pv-num" id="pv-6">--</span><span class="pv-unit">W</span></div>
-        <div class="planet-lbl">GPU PWR</div>
+      <div class="tree-gauge">
+        <canvas id="tree-6" width="150" height="130"></canvas>
+        <div class="tree-val"><span class="tv-num" id="tv-6">--</span><span class="tv-unit">W</span></div>
+        <div class="tree-lbl">GPU PWR</div>
       </div>
     </div>
 
-    <!-- Panel grid: 3x2 viewport panels -->
+    <!-- Panel grid: 3x2 wooden panels -->
     <div id="panel-grid">
       <!-- CPU Panel -->
-      <div class="panel viewport">
-        <div class="nav-light tl"></div><div class="nav-light tr"></div>
-        <div class="nav-light bl"></div><div class="nav-light br"></div>
-        <div class="panel-header"><span class="star-icon">&#10022;</span> CPU</div>
+      <div class="panel wooden">
+        <div class="moss-corner tl"></div><div class="moss-corner tr"></div>
+        <div class="moss-corner bl"></div><div class="moss-corner br"></div>
+        <div class="panel-header"><span class="leaf-icon">&#127811;</span> CPU</div>
         <div class="panel-body">
-          <canvas id="constellation-grid" width="380" height="100"></canvas>
-          <div class="stat-row" id="stat-cpu-model"><span class="lbl">MODEL</span><span class="val">--</span></div>
-          <div class="stat-row" id="stat-cpu-load"><span class="lbl">LOAD</span><span class="val">--%</span></div>
-          <div class="stat-row" id="stat-cpu-freq"><span class="lbl">IMPULSE</span><span class="val">-- GHz</span></div>
-          <div class="stat-row" id="stat-cpu-temp"><span class="lbl">THERMAL</span><span class="val">--</span></div>
+          <canvas id="garden-grid" width="380" height="100"></canvas>
+          <div class="stat-row" id="stat-cpu-model"><span class="lbl">SPECIES</span><span class="val">--</span></div>
+          <div class="stat-row" id="stat-cpu-load"><span class="lbl">VIGOR</span><span class="val">--%</span></div>
+          <div class="stat-row" id="stat-cpu-freq"><span class="lbl">PULSE</span><span class="val">-- GHz</span></div>
+          <div class="stat-row" id="stat-cpu-temp"><span class="lbl">WARMTH</span><span class="val">--</span></div>
         </div>
       </div>
 
       <!-- Memory Panel -->
-      <div class="panel viewport">
-        <div class="nav-light tl"></div><div class="nav-light tr"></div>
-        <div class="nav-light bl"></div><div class="nav-light br"></div>
-        <div class="panel-header"><span class="star-icon">&#10022;</span> MEMORY</div>
+      <div class="panel wooden">
+        <div class="moss-corner tl"></div><div class="moss-corner tr"></div>
+        <div class="moss-corner bl"></div><div class="moss-corner br"></div>
+        <div class="panel-header"><span class="leaf-icon">&#127811;</span> MEMORY</div>
         <div class="panel-body">
-          <canvas id="ring-viz" width="380" height="110"></canvas>
-          <div class="stat-row" id="stat-ram"><span class="lbl">RAM</span><span class="val">-- / --</span></div>
-          <div class="stat-row" id="stat-ram-pct"><span class="lbl">USED</span><span class="val">--%</span></div>
-          <div class="stat-row" id="stat-ram-free"><span class="lbl">FREE</span><span class="val">--</span></div>
-          <div class="stat-row" id="stat-swap"><span class="lbl">SWAP</span><span class="val">-- / --</span></div>
-          <div class="stat-row" id="stat-loadavg"><span class="lbl">LOAD</span><span class="val">--</span></div>
+          <canvas id="lake-viz" width="380" height="110"></canvas>
+          <div class="stat-row" id="stat-ram"><span class="lbl">WATER</span><span class="val">-- / --</span></div>
+          <div class="stat-row" id="stat-ram-pct"><span class="lbl">LEVEL</span><span class="val">--%</span></div>
+          <div class="stat-row" id="stat-ram-free"><span class="lbl">FLOW</span><span class="val">--</span></div>
+          <div class="stat-row" id="stat-swap"><span class="lbl">SPRING</span><span class="val">-- / --</span></div>
+          <div class="stat-row" id="stat-loadavg"><span class="lbl">CURRENT</span><span class="val">--</span></div>
         </div>
       </div>
 
       <!-- Storage Panel -->
-      <div class="panel viewport">
-        <div class="nav-light tl"></div><div class="nav-light tr"></div>
-        <div class="nav-light bl"></div><div class="nav-light br"></div>
-        <div class="panel-header"><span class="star-icon">&#10022;</span> STORAGE</div>
+      <div class="panel wooden">
+        <div class="moss-corner tl"></div><div class="moss-corner tr"></div>
+        <div class="moss-corner bl"></div><div class="moss-corner br"></div>
+        <div class="panel-header"><span class="leaf-icon">&#127811;</span> STORAGE</div>
         <div class="panel-body">
-          <div class="cargo-bay" id="cargo-root">
-            <span class="cargo-label">/</span>
-            <div class="cargo-capsule"><div class="cargo-fill"></div></div>
-            <span class="cargo-text">--</span>
+          <div class="burrow-bar" id="burrow-root">
+            <span class="burrow-label">/</span>
+            <div class="burrow-capsule"><div class="burrow-fill"></div></div>
+            <span class="burrow-text">--</span>
           </div>
-          <div class="cargo-bay" id="cargo-home">
-            <span class="cargo-label">/home</span>
-            <div class="cargo-capsule"><div class="cargo-fill"></div></div>
-            <span class="cargo-text">--</span>
+          <div class="burrow-bar" id="burrow-home">
+            <span class="burrow-label">/home</span>
+            <div class="burrow-capsule"><div class="burrow-fill"></div></div>
+            <span class="burrow-text">--</span>
           </div>
-          <div class="cargo-bay" id="cargo-cave">
-            <span class="cargo-label">/cave</span>
-            <div class="cargo-capsule"><div class="cargo-fill"></div></div>
-            <span class="cargo-text">--</span>
+          <div class="burrow-bar" id="burrow-cave">
+            <span class="burrow-label">/cave</span>
+            <div class="burrow-capsule"><div class="burrow-fill"></div></div>
+            <span class="burrow-text">--</span>
           </div>
           <div class="stat-row io-row" id="stat-disk-read">
-            <span class="lbl">READ</span>
-            <div class="comet-trail read"><div class="comet-head"></div></div>
+            <span class="lbl">ROOTS IN</span>
+            <div class="root-trail read"><div class="root-head"></div></div>
             <span class="val">-- KiB/s</span>
           </div>
           <div class="stat-row io-row" id="stat-disk-write">
-            <span class="lbl">WRITE</span>
-            <div class="comet-trail write"><div class="comet-head"></div></div>
+            <span class="lbl">ROOTS OUT</span>
+            <div class="root-trail write"><div class="root-head"></div></div>
             <span class="val">-- KiB/s</span>
           </div>
         </div>
       </div>
 
       <!-- GPU Panel -->
-      <div class="panel viewport">
-        <div class="nav-light tl"></div><div class="nav-light tr"></div>
-        <div class="nav-light bl"></div><div class="nav-light br"></div>
-        <div class="panel-header"><span class="star-icon">&#10022;</span> GPU</div>
+      <div class="panel wooden">
+        <div class="moss-corner tl"></div><div class="moss-corner tr"></div>
+        <div class="moss-corner bl"></div><div class="moss-corner br"></div>
+        <div class="panel-header"><span class="leaf-icon">&#127811;</span> GPU</div>
         <div class="panel-body">
-          <canvas id="accretion-disk" width="380" height="100"></canvas>
-          <div class="stat-row registry-row" id="stat-gpu-registry"><span class="lbl">REGISTRY</span><span class="val">--</span></div>
-          <div class="stat-row" id="stat-gpu-usage"><span class="lbl">THROTTLE</span><span class="val">--%</span></div>
-          <div class="stat-row" id="stat-gpu-temp"><span class="lbl">THERMAL</span><span class="val">--</span></div>
-          <div class="stat-row" id="stat-gpu-fan"><span class="lbl">THRUSTER</span><span class="val">--%</span></div>
+          <canvas id="trunk-viz" width="380" height="100"></canvas>
+          <div class="stat-row registry-row" id="stat-gpu-registry"><span class="lbl">GROVE</span><span class="val">--</span></div>
+          <div class="stat-row" id="stat-gpu-usage"><span class="lbl">GROWTH</span><span class="val">--%</span></div>
+          <div class="stat-row" id="stat-gpu-temp"><span class="lbl">WARMTH</span><span class="val">--</span></div>
+          <div class="stat-row" id="stat-gpu-fan"><span class="lbl">BREEZE</span><span class="val">--%</span></div>
           <div id="vram-text" class="vram-text">VRAM: -- / -- MiB</div>
         </div>
       </div>
 
       <!-- Network Panel -->
-      <div class="panel viewport">
-        <div class="nav-light tl"></div><div class="nav-light tr"></div>
-        <div class="nav-light bl"></div><div class="nav-light br"></div>
-        <div class="panel-header"><span class="star-icon">&#10022;</span> NETWORK</div>
+      <div class="panel wooden">
+        <div class="moss-corner tl"></div><div class="moss-corner tr"></div>
+        <div class="moss-corner bl"></div><div class="moss-corner br"></div>
+        <div class="panel-header"><span class="leaf-icon">&#127811;</span> NETWORK</div>
         <div class="panel-body">
-          <div class="stat-row" id="stat-net-ip"><span class="lbl">COORD</span><span class="val">--</span></div>
-          <div class="stat-row" id="stat-net-type"><span class="lbl">LINK</span><span class="val">--</span></div>
-          <div class="stat-row" id="stat-net-down"><span class="lbl">DOWNLINK</span><span class="val">-- KiB/s</span></div>
-          <div class="stat-row" id="stat-net-up"><span class="lbl">UPLINK</span><span class="val">-- KiB/s</span></div>
-          <canvas id="wormhole-viz" width="380" height="120"></canvas>
+          <div class="stat-row" id="stat-net-ip"><span class="lbl">CLEARING</span><span class="val">--</span></div>
+          <div class="stat-row" id="stat-net-type"><span class="lbl">MYCELIUM</span><span class="val">--</span></div>
+          <div class="stat-row" id="stat-net-down"><span class="lbl">RAINFALL</span><span class="val">-- KiB/s</span></div>
+          <div class="stat-row" id="stat-net-up"><span class="lbl">RISING SAP</span><span class="val">-- KiB/s</span></div>
+          <canvas id="vine-graph" width="380" height="120"></canvas>
         </div>
       </div>
 
       <!-- Docker Panel -->
-      <div class="panel viewport">
-        <div class="nav-light tl"></div><div class="nav-light tr"></div>
-        <div class="nav-light bl"></div><div class="nav-light br"></div>
-        <div class="panel-header"><span class="star-icon">&#10022;</span> DOCKER</div>
+      <div class="panel wooden">
+        <div class="moss-corner tl"></div><div class="moss-corner tr"></div>
+        <div class="moss-corner bl"></div><div class="moss-corner br"></div>
+        <div class="panel-header"><span class="leaf-icon">&#127811;</span> DOCKER</div>
         <div class="panel-body">
-          <div class="stat-row" id="stat-docker-active"><span class="lbl">FLEET</span><span class="val">--</span></div>
-          <div id="docker-fleet" class="docker-fleet"></div>
-          <div class="manifest-label">CREW MANIFEST</div>
-          <div id="crew-manifest" class="crew-manifest"></div>
+          <div class="stat-row" id="stat-docker-active"><span class="lbl">HIVE</span><span class="val">--</span></div>
+          <div id="honeycomb" class="honeycomb"></div>
+          <div class="ecosystem-label">ECOSYSTEM</div>
+          <div id="ecosystem" class="ecosystem"></div>
         </div>
       </div>
     </div>

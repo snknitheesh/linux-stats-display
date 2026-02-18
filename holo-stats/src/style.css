@@ -1,18 +1,24 @@
-/* ─── Deep Space Design Tokens ─── */
+/* ─── Living Nature Design Tokens ─── */
 :root {
-  --space-bg: #0A0A1A;
-  --star-white: #E0E8F0;
-  --solar-gold: #FFD700;
-  --nebula-purple: #8B6BAE;
-  --comet-cyan: #4DC9F6;
-  --supernova-orange: #FF6347;
-  --bezel-grey: #4A5568;
-  --bezel-dark: #2D3748;
-  --label: #778899;
-  --text: #E0E8F0;
-  --panel-bg: rgba(8, 12, 28, 0.72);
-  --panel-border: rgba(100, 130, 170, 0.2);
-  --green: #00FF88;
+  --forest-deep: #0d1f0d;
+  --forest-mid: #1a2f1a;
+  --canopy-green: #2d5a2d;
+  --moss: #4a6741;
+  --leaf-bright: #6abf4b;
+  --amber: #D4A843;
+  --bark: #5c3d2e;
+  --bark-light: #8B6B4A;
+  --soil: #3E2723;
+  --parchment: rgba(30, 45, 25, 0.72);
+  --panel-border: rgba(106, 191, 75, 0.15);
+  --honey: #F0C040;
+  --water-blue: #4A90B8;
+  --water-teal: #3CB8A0;
+  --berry-red: #C04040;
+  --sunlight: #FFE4A0;
+  --label: #7A9070;
+  --text: #D4DEC8;
+  --green: #00DD66;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -41,9 +47,9 @@ body {
   background: repeating-linear-gradient(
     0deg,
     transparent 0px,
-    transparent 3px,
-    rgba(100, 150, 200, 0.008) 3px,
-    rgba(100, 150, 200, 0.008) 6px
+    transparent 4px,
+    rgba(60, 100, 40, 0.006) 4px,
+    rgba(60, 100, 40, 0.006) 8px
   );
 }
 
@@ -53,7 +59,7 @@ body {
   width: 100vw; height: 100vh;
   z-index: 4;
   pointer-events: none;
-  background: radial-gradient(ellipse at center, transparent 25%, rgba(5, 5, 15, 0.6) 100%);
+  background: radial-gradient(ellipse at center, transparent 30%, rgba(8, 18, 8, 0.55) 100%);
 }
 
 #overlay {
@@ -64,7 +70,7 @@ body {
   pointer-events: none;
 }
 
-/* ─── Glitch Flash ─── */
+/* ─── Nature Flash (instead of glitch) ─── */
 .glitch-flash {
   position: fixed;
   top: 0; left: 0;
@@ -74,14 +80,13 @@ body {
   opacity: 0;
 }
 .glitch-flash.active {
-  animation: glitch-flash-anim 0.12s steps(3) forwards;
+  animation: nature-flash-anim 0.2s ease-out forwards;
 }
 
-@keyframes glitch-flash-anim {
+@keyframes nature-flash-anim {
   0%   { opacity: 0; }
-  33%  { opacity: 0.03; background: linear-gradient(90deg, rgba(255,215,0,0.15) 0%, transparent 40%, rgba(77,201,246,0.1) 100%); transform: translateX(-3px); }
-  66%  { opacity: 0.04; background: linear-gradient(90deg, transparent 20%, rgba(139,107,174,0.12) 50%, transparent 80%); transform: translateX(2px); }
-  100% { opacity: 0; transform: translateX(0); }
+  40%  { opacity: 0.04; background: linear-gradient(180deg, rgba(106, 191, 75, 0.12) 0%, transparent 50%, rgba(212, 168, 67, 0.08) 100%); }
+  100% { opacity: 0; }
 }
 
 /* ─── Top Bar ─── */
@@ -93,8 +98,8 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 0 24px;
-  background: linear-gradient(180deg, rgba(77, 201, 246, 0.03) 0%, transparent 100%);
-  border-bottom: 1px solid rgba(100, 130, 170, 0.06);
+  background: linear-gradient(180deg, rgba(45, 90, 45, 0.06) 0%, transparent 100%);
+  border-bottom: 1px solid rgba(106, 191, 75, 0.06);
 }
 
 #top-left { flex: 1; }
@@ -110,9 +115,9 @@ body {
 
 #date-display {
   font-size: 11px;
-  color: var(--comet-cyan);
+  color: var(--moss);
   letter-spacing: 2px;
-  text-shadow: 0 0 6px rgba(77, 201, 246, 0.4);
+  text-shadow: 0 0 6px rgba(74, 103, 65, 0.5);
 }
 
 #time-display {
@@ -120,7 +125,7 @@ body {
   font-weight: 300;
   color: var(--text);
   letter-spacing: 4px;
-  text-shadow: 0 0 10px rgba(224, 232, 240, 0.2);
+  text-shadow: 0 0 10px rgba(212, 222, 200, 0.15);
 }
 
 .top-label {
@@ -130,15 +135,15 @@ body {
 }
 
 .top-sep {
-  color: rgba(139, 107, 174, 0.4);
-  font-size: 8px;
+  color: rgba(106, 191, 75, 0.5);
+  font-size: 10px;
 }
 
 #met-display {
   font-size: 11px;
-  color: var(--solar-gold);
+  color: var(--amber);
   letter-spacing: 1px;
-  text-shadow: 0 0 6px rgba(255, 215, 0, 0.3);
+  text-shadow: 0 0 6px rgba(212, 168, 67, 0.3);
 }
 
 #net-status {
@@ -147,7 +152,7 @@ body {
   letter-spacing: 1px;
 }
 
-/* ─── Planet Gauge Row ─── */
+/* ─── Tree Canopy Gauge Row ─── */
 #gauge-row {
   position: absolute;
   top: 42px;
@@ -158,7 +163,7 @@ body {
   padding: 0 10px;
 }
 
-.planet-gauge {
+.tree-gauge {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -166,12 +171,12 @@ body {
   position: relative;
 }
 
-.planet-gauge canvas {
+.tree-gauge canvas {
   width: 130px;
   height: 115px;
 }
 
-.planet-val {
+.tree-val {
   position: absolute;
   top: 42%;
   left: 50%;
@@ -181,31 +186,31 @@ body {
   text-shadow: 0 0 12px rgba(0, 0, 0, 0.9), 0 0 4px rgba(0, 0, 0, 0.8);
 }
 
-.pv-num {
+.tv-num {
   font-size: 22px;
   font-weight: bold;
-  color: var(--star-white);
+  color: var(--text);
   text-shadow: 0 0 8px currentColor, 0 0 4px rgba(0, 0, 0, 0.8);
   transition: color 0.6s ease, text-shadow 0.6s ease;
 }
 
-.pv-num.flash {
+.tv-num.flash {
   text-shadow: 0 0 20px currentColor, 0 0 40px currentColor !important;
   transition: none !important;
 }
 
-.pv-unit {
+.tv-unit {
   font-size: 10px;
-  color: rgba(224, 232, 240, 0.5);
+  color: rgba(212, 222, 200, 0.5);
   margin-left: 1px;
 }
 
-.planet-lbl {
+.tree-lbl {
   font-size: 10px;
   letter-spacing: 1.5px;
   margin-top: 0px;
   color: var(--label);
-  text-shadow: 0 0 4px rgba(77, 201, 246, 0.15);
+  text-shadow: 0 0 4px rgba(74, 103, 65, 0.2);
 }
 
 /* ─── Panel Grid ─── */
@@ -220,9 +225,9 @@ body {
   gap: 10px;
 }
 
-/* ─── Viewport Panel Frame ─── */
-.panel.viewport {
-  background: var(--panel-bg);
+/* ─── Wooden Panel Frame ─── */
+.panel.wooden {
+  background: var(--parchment);
   border: 2px solid var(--panel-border);
   border-radius: 8px;
   padding: 10px 14px;
@@ -231,55 +236,53 @@ body {
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    inset 0 1px 0 rgba(106, 191, 75, 0.04),
     inset 0 -1px 0 rgba(0, 0, 0, 0.25),
-    0 0 20px rgba(77, 201, 246, 0.04),
-    0 0 1px rgba(100, 150, 200, 0.15);
+    0 0 20px rgba(45, 90, 45, 0.06),
+    0 0 1px rgba(74, 103, 65, 0.2);
 }
 
-.panel.viewport::before {
+.panel.wooden::before {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(77, 201, 246, 0.2), transparent);
+  background: linear-gradient(90deg, transparent, rgba(106, 191, 75, 0.15), transparent);
 }
 
-/* Navigation lights */
-.nav-light {
+/* Moss corner lights */
+.moss-corner {
   position: absolute;
-  width: 4px;
-  height: 4px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  background: var(--comet-cyan);
-  box-shadow: 0 0 6px var(--comet-cyan), 0 0 2px #fff;
-  animation: nav-blink 3s ease-in-out infinite;
+  background: var(--leaf-bright);
+  box-shadow: 0 0 6px var(--leaf-bright), 0 0 2px rgba(255, 255, 200, 0.4);
+  animation: moss-pulse 4s ease-in-out infinite;
 }
-.nav-light.tl { top: 6px; left: 6px; animation-delay: 0s; }
-.nav-light.tr { top: 6px; right: 6px; animation-delay: 0.75s; }
-.nav-light.bl { bottom: 6px; left: 6px; animation-delay: 1.5s; }
-.nav-light.br { bottom: 6px; right: 6px; animation-delay: 2.25s; }
+.moss-corner.tl { top: 6px; left: 6px; animation-delay: 0s; }
+.moss-corner.tr { top: 6px; right: 6px; animation-delay: 1s; }
+.moss-corner.bl { bottom: 6px; left: 6px; animation-delay: 2s; }
+.moss-corner.br { bottom: 6px; right: 6px; animation-delay: 3s; }
 
-@keyframes nav-blink {
-  0%, 100% { opacity: 0.2; }
-  50% { opacity: 0.8; }
+@keyframes moss-pulse {
+  0%, 100% { opacity: 0.15; }
+  50% { opacity: 0.6; }
 }
 
-/* Panel header - ship console label */
+/* Panel header - wooden label */
 .panel-header {
   font-size: 13px;
-  color: var(--comet-cyan);
+  color: var(--leaf-bright);
   letter-spacing: 2.5px;
   margin-bottom: 5px;
-  text-shadow: 0 0 8px rgba(77, 201, 246, 0.4);
+  text-shadow: 0 0 8px rgba(106, 191, 75, 0.35);
   padding-bottom: 4px;
-  border-bottom: 1px solid rgba(100, 130, 170, 0.1);
+  border-bottom: 1px solid rgba(106, 191, 75, 0.08);
 }
 
-.star-icon {
-  color: var(--solar-gold);
-  font-size: 10px;
-  text-shadow: 0 0 4px var(--solar-gold);
+.leaf-icon {
+  font-size: 11px;
 }
 
 .panel-body {
@@ -288,20 +291,20 @@ body {
 }
 
 /* Panel canvases */
-#constellation-grid,
-#ring-viz,
-#accretion-disk,
-#wormhole-viz {
+#garden-grid,
+#lake-viz,
+#trunk-viz,
+#vine-graph {
   width: 100%;
   display: block;
   margin-bottom: 4px;
   border-radius: 3px;
 }
 
-#constellation-grid { height: 90px; }
-#ring-viz { height: 100px; }
-#accretion-disk { height: 90px; }
-#wormhole-viz { height: 110px; }
+#garden-grid { height: 90px; }
+#lake-viz { height: 100px; }
+#trunk-viz { height: 90px; }
+#vine-graph { height: 110px; }
 
 /* ─── Stat Rows ─── */
 .stat-row {
@@ -327,68 +330,68 @@ body {
   text-overflow: ellipsis;
 }
 
-.val-cyan { color: var(--comet-cyan) !important; text-shadow: 0 0 4px rgba(77, 201, 246, 0.4); }
-.val-green { color: var(--green) !important; text-shadow: 0 0 4px rgba(0, 255, 136, 0.3); }
-.val-gold { color: var(--solar-gold) !important; text-shadow: 0 0 4px rgba(255, 215, 0, 0.3); }
-.val-orange { color: var(--supernova-orange) !important; text-shadow: 0 0 4px rgba(255, 99, 71, 0.4); }
-.val-purple { color: var(--nebula-purple) !important; text-shadow: 0 0 4px rgba(139, 107, 174, 0.4); }
+.val-green { color: var(--leaf-bright) !important; text-shadow: 0 0 4px rgba(106, 191, 75, 0.4); }
+.val-teal { color: var(--water-teal) !important; text-shadow: 0 0 4px rgba(60, 184, 160, 0.3); }
+.val-amber { color: var(--amber) !important; text-shadow: 0 0 4px rgba(212, 168, 67, 0.3); }
+.val-berry { color: var(--berry-red) !important; text-shadow: 0 0 4px rgba(192, 64, 64, 0.4); }
+.val-moss { color: var(--moss) !important; text-shadow: 0 0 4px rgba(74, 103, 65, 0.4); }
 
-/* ─── Cargo Bay Bars (Storage) ─── */
-.cargo-bay {
+/* ─── Burrow Bars (Storage) ─── */
+.burrow-bar {
   display: flex;
   align-items: center;
   gap: 8px;
   margin: 4px 0;
 }
 
-.cargo-label {
+.burrow-label {
   color: var(--label);
   font-size: 11px;
   min-width: 50px;
 }
 
-.cargo-capsule {
+.burrow-capsule {
   flex: 1;
   height: 16px;
   border-radius: 8px;
-  background: rgba(77, 201, 246, 0.06);
-  border: 1px solid rgba(100, 130, 170, 0.12);
+  background: rgba(62, 39, 35, 0.3);
+  border: 1px solid rgba(106, 191, 75, 0.08);
   overflow: hidden;
   position: relative;
 }
 
-.cargo-fill {
+.burrow-fill {
   height: 100%;
   border-radius: 7px;
-  background: linear-gradient(90deg, var(--comet-cyan), var(--nebula-purple));
-  box-shadow: 0 0 8px rgba(77, 201, 246, 0.3);
+  background: linear-gradient(90deg, var(--moss), var(--leaf-bright));
+  box-shadow: 0 0 8px rgba(106, 191, 75, 0.3);
   transition: width 0.6s ease;
   width: 0%;
 }
 
-.cargo-text {
+.burrow-text {
   color: var(--text);
   font-size: 11px;
   min-width: 40px;
   text-align: right;
 }
 
-/* ─── Comet Trails (I/O) ─── */
+/* ─── Root Trails (I/O) ─── */
 .io-row {
   align-items: center;
 }
 
-.comet-trail {
+.root-trail {
   flex: 1;
   height: 6px;
   border-radius: 3px;
   position: relative;
   overflow: hidden;
-  background: rgba(77, 201, 246, 0.04);
+  background: rgba(74, 103, 65, 0.06);
   margin: 0 6px;
 }
 
-.comet-head {
+.root-head {
   position: absolute;
   top: 0;
   height: 100%;
@@ -397,16 +400,16 @@ body {
   transition: width 0.6s ease;
 }
 
-.comet-trail.read .comet-head {
+.root-trail.read .root-head {
   left: 0;
-  background: linear-gradient(90deg, transparent, var(--comet-cyan), #fff);
-  box-shadow: 2px 0 8px var(--comet-cyan);
+  background: linear-gradient(90deg, transparent, var(--water-teal), var(--leaf-bright));
+  box-shadow: 2px 0 8px var(--water-teal);
 }
 
-.comet-trail.write .comet-head {
+.root-trail.write .root-head {
   right: 0; left: auto;
-  background: linear-gradient(270deg, transparent, var(--supernova-orange), #fff);
-  box-shadow: -2px 0 8px var(--supernova-orange);
+  background: linear-gradient(270deg, transparent, var(--amber), var(--honey));
+  box-shadow: -2px 0 8px var(--amber);
 }
 
 /* Registry row */
@@ -424,12 +427,12 @@ body {
   letter-spacing: 0.5px;
 }
 
-/* ─── Docker Fleet ─── */
-.docker-fleet {
+/* ─── Honeycomb (Docker) ─── */
+.honeycomb {
   margin-top: 4px;
 }
 
-.fleet-ship {
+.hive-cell {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -437,7 +440,7 @@ body {
   line-height: 1.8;
 }
 
-.ship-light {
+.hive-dot {
   width: 7px;
   height: 7px;
   border-radius: 50%;
@@ -446,13 +449,13 @@ body {
   flex-shrink: 0;
 }
 
-.ship-callsign {
-  color: var(--solar-gold);
+.hive-name {
+  color: var(--amber);
   letter-spacing: 0.5px;
 }
 
-/* ─── Crew Manifest (Processes) ─── */
-.manifest-label {
+/* ─── Ecosystem (Processes) ─── */
+.ecosystem-label {
   font-size: 10px;
   color: var(--label);
   letter-spacing: 1px;
@@ -460,11 +463,11 @@ body {
   margin-bottom: 2px;
 }
 
-.crew-manifest {
+.ecosystem {
   margin-top: 2px;
 }
 
-.crew-entry {
+.eco-entry {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -473,28 +476,28 @@ body {
   gap: 8px;
 }
 
-.crew-name {
-  color: var(--comet-cyan);
+.eco-name {
+  color: var(--leaf-bright);
 }
 
-.crew-thrust {
+.eco-bar {
   flex: 1;
   height: 4px;
   border-radius: 2px;
-  background: rgba(77, 201, 246, 0.06);
+  background: rgba(74, 103, 65, 0.1);
   overflow: hidden;
   margin: 0 4px;
 }
 
-.crew-thrust-fill {
+.eco-bar-fill {
   height: 100%;
   border-radius: 2px;
-  background: var(--solar-gold);
-  box-shadow: 0 0 4px var(--solar-gold);
+  background: var(--amber);
+  box-shadow: 0 0 4px var(--amber);
   transition: width 0.4s ease;
 }
 
-.crew-pct {
+.eco-pct {
   color: var(--text);
   font-size: 12px;
   min-width: 40px;
@@ -507,9 +510,9 @@ body {
   bottom: 3px;
   left: 24px; right: 24px;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(77,201,246,0.12), rgba(139,107,174,0.08), rgba(255,215,0,0.06), rgba(77,201,246,0.12), transparent);
+  background: linear-gradient(90deg, transparent, rgba(106, 191, 75, 0.1), rgba(212, 168, 67, 0.06), rgba(74, 103, 65, 0.1), transparent);
   background-size: 200% 100%;
-  animation: divider-flow 4s linear infinite;
+  animation: divider-flow 6s linear infinite;
 }
 
 @keyframes divider-flow {
