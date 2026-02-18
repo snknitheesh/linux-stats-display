@@ -542,7 +542,7 @@ class HoloStatsApp {
 
     // Initialize widgets
     this.hexMeter = new HexArcMeter();
-    this.coreGrid = new CpuCoreGrid('cpu-core-grid', 16);
+    this.coreGrid = new CpuCoreGrid('cpu-core-grid', 32);
     this.fuelBar = new FuelBar('vram-fuel-bar', 20);
     this.thermalStrip = new ThermalStrip('gpu-thermal-strip');
     this.waveform = new NetworkWaveform('net-waveform');

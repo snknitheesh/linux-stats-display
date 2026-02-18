@@ -159,10 +159,10 @@ body {
 }
 
 #time-display {
-  font-size: 22px;
+  font-size: 26px;
   font-weight: 300;
   color: var(--text);
-  letter-spacing: 3px;
+  letter-spacing: 4px;
   text-shadow: 0 0 10px rgba(224, 232, 240, 0.25);
   animation: glitch-time 12s infinite;
 }
@@ -239,8 +239,8 @@ body {
 }
 
 .hex-svg {
-  width: 120px;
-  height: 120px;
+  width: 130px;
+  height: 130px;
   filter: drop-shadow(0 0 4px var(--cyan));
 }
 
@@ -254,7 +254,7 @@ body {
 }
 
 .hv-num {
-  font-size: 22px;
+  font-size: 24px;
   font-weight: bold;
   color: var(--cyan);
   text-shadow: 0 0 8px var(--cyan), 0 0 16px var(--cyan);
@@ -273,9 +273,9 @@ body {
 }
 
 .hex-lbl {
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 1.5px;
-  margin-top: 1px;
+  margin-top: 2px;
   color: var(--label);
   text-shadow: 0 0 4px rgba(0, 240, 255, 0.2);
 }
@@ -283,9 +283,9 @@ body {
 /* ─── Panel Grid ─── */
 #panel-grid {
   position: absolute;
-  top: 190px;
+  top: 200px;
   left: 20px; right: 20px;
-  bottom: 16px;
+  bottom: 12px;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: 1fr 1fr;
@@ -296,7 +296,7 @@ body {
   background: var(--panel-bg);
   border: 1px solid var(--panel-border);
   border-radius: 4px;
-  padding: 6px 10px;
+  padding: 10px 14px;
   position: relative;
   overflow: hidden;
   backdrop-filter: blur(6px);
@@ -316,19 +316,19 @@ body {
 }
 
 .panel-header {
-  font-size: 11px;
+  font-size: 13px;
   color: var(--cyan);
-  letter-spacing: 2px;
-  margin-bottom: 4px;
+  letter-spacing: 2.5px;
+  margin-bottom: 6px;
   text-shadow: 0 0 6px rgba(0, 240, 255, 0.35);
-  padding-bottom: 3px;
+  padding-bottom: 4px;
   border-bottom: 1px solid rgba(0, 240, 255, 0.08);
 }
 .panel-header::before { content: '// '; opacity: 0.5; }
 
 .panel-body {
-  font-size: 12px;
-  line-height: 1.55;
+  font-size: 14px;
+  line-height: 1.75;
 }
 
 /* ─── Stat Rows ─── */
@@ -341,14 +341,14 @@ body {
 
 .stat-row .lbl {
   color: var(--label);
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 0.5px;
   flex-shrink: 0;
 }
 
 .stat-row .val {
   color: var(--text);
-  font-size: 12px;
+  font-size: 14px;
   text-align: right;
   white-space: nowrap;
   overflow: hidden;
@@ -362,22 +362,22 @@ body {
 
 /* ─── CPU Core Grid ─── */
 .core-grid-label, .vram-label, .thermal-label, .process-feed-label {
-  font-size: 9px;
+  font-size: 11px;
   color: var(--label);
   letter-spacing: 1px;
-  margin-top: 4px;
-  margin-bottom: 2px;
+  margin-top: 6px;
+  margin-bottom: 3px;
 }
 
 .core-grid {
   display: grid;
   grid-template-columns: repeat(8, 1fr);
-  gap: 2px;
+  gap: 3px;
 }
 
 .core-cell {
-  height: 10px;
-  border-radius: 1px;
+  height: 18px;
+  border-radius: 2px;
   background: rgba(0, 240, 255, 0.06);
   border: 1px solid rgba(0, 240, 255, 0.08);
   transition: background 0.4s ease, box-shadow 0.4s ease;
@@ -387,8 +387,8 @@ body {
 .fuel-bar {
   display: flex;
   gap: 2px;
-  height: 10px;
-  margin: 2px 0;
+  height: 16px;
+  margin: 3px 0;
 }
 
 .fuel-seg {
@@ -416,15 +416,15 @@ body {
 }
 
 .fuel-text {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--label);
   text-align: right;
 }
 
 /* ─── Thermal Strip ─── */
 .thermal-strip {
-  height: 6px;
-  border-radius: 2px;
+  height: 10px;
+  border-radius: 3px;
   background: linear-gradient(90deg, var(--cyan) 0%, var(--green) 30%, var(--amber) 65%, var(--magenta) 100%);
   position: relative;
   overflow: hidden;
@@ -443,8 +443,8 @@ body {
 /* ─── Network Waveform ─── */
 #net-waveform {
   width: 100%;
-  height: 50px;
-  margin-top: 4px;
+  height: 100px;
+  margin-top: 6px;
   border-radius: 2px;
   background: rgba(0, 240, 255, 0.02);
   border: 1px solid rgba(0, 240, 255, 0.06);
@@ -458,14 +458,14 @@ body {
 .dock-entry {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 11px;
-  line-height: 1.5;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 1.7;
 }
 
 .dock-dot {
-  width: 5px;
-  height: 5px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: var(--green);
   box-shadow: 0 0 4px var(--green);
@@ -484,8 +484,8 @@ body {
 .proc-line {
   display: flex;
   justify-content: space-between;
-  font-size: 11px;
-  line-height: 1.5;
+  font-size: 13px;
+  line-height: 1.7;
   animation: feed-in 0.3s ease-out;
 }
 
