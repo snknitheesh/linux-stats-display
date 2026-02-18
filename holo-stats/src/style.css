@@ -1,20 +1,20 @@
-/* ─── Racing Garage Design Tokens ─── */
+/* ─── Robotics Lab Design Tokens ─── */
 :root {
-  --matte-black: #0d0d0d;
-  --carbon: #1a1a1e;
-  --gunmetal: #2a2a2e;
-  --aluminum: #8a8a90;
-  --chrome: #c0c0c8;
-  --ferrari-red: #DC143C;
-  --mclaren-orange: #FF8000;
-  --racing-green: #00AA55;
-  --electric-blue: #0088FF;
-  --gold: #FFD700;
-  --panel-bg: rgba(13, 13, 16, 0.82);
-  --panel-border: rgba(140, 140, 150, 0.12);
-  --label: #6a6a72;
-  --text: #E0E0E8;
-  --white: #F0F0F5;
+  --obsidian: #080810;
+  --cobalt: #0a1628;
+  --cobalt-mid: #121e38;
+  --cyan: #00e5ff;
+  --violet: #b388ff;
+  --servo-orange: #ff6d00;
+  --logic-green: #00e676;
+  --crimson: #ff1744;
+  --titanium: #8090a0;
+  --titanium-dark: #3a4858;
+  --panel-bg: rgba(8, 8, 18, 0.78);
+  --panel-border: rgba(0, 229, 255, 0.1);
+  --label: #5a7088;
+  --text: #c8d8e8;
+  --white: #e8f0f8;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -22,7 +22,7 @@
 body {
   background: transparent;
   overflow: hidden;
-  font-family: 'Titillium Web', 'Share Tech Mono', 'DejaVu Sans Mono', 'JetBrains Mono', monospace;
+  font-family: 'IBM Plex Mono', 'Fira Code', 'Source Code Pro', 'DejaVu Sans Mono', monospace;
   color: var(--text);
 }
 
@@ -43,9 +43,9 @@ body {
   background: repeating-linear-gradient(
     0deg,
     transparent 0px,
-    transparent 3px,
-    rgba(200, 200, 210, 0.004) 3px,
-    rgba(200, 200, 210, 0.004) 6px
+    transparent 2px,
+    rgba(0, 229, 255, 0.003) 2px,
+    rgba(0, 229, 255, 0.003) 4px
   );
 }
 
@@ -55,7 +55,7 @@ body {
   width: 100vw; height: 100vh;
   z-index: 4;
   pointer-events: none;
-  background: radial-gradient(ellipse at center, transparent 30%, rgba(0, 0, 0, 0.5) 100%);
+  background: radial-gradient(ellipse at center, transparent 25%, rgba(4, 4, 12, 0.6) 100%);
 }
 
 #overlay {
@@ -66,7 +66,7 @@ body {
   pointer-events: none;
 }
 
-/* ─── Caution Flash ─── */
+/* ─── Anomaly Flash ─── */
 .glitch-flash {
   position: fixed;
   top: 0; left: 0;
@@ -76,13 +76,13 @@ body {
   opacity: 0;
 }
 .glitch-flash.active {
-  animation: caution-flash 0.15s steps(3) forwards;
+  animation: anomaly-flash 0.12s steps(3) forwards;
 }
 
-@keyframes caution-flash {
+@keyframes anomaly-flash {
   0%   { opacity: 0; }
-  33%  { opacity: 0.03; background: linear-gradient(90deg, rgba(220, 20, 60, 0.1) 0%, transparent 40%, rgba(0, 136, 255, 0.06) 100%); transform: translateX(-2px); }
-  66%  { opacity: 0.04; background: linear-gradient(90deg, transparent 20%, rgba(255, 128, 0, 0.08) 50%, transparent 80%); transform: translateX(1px); }
+  33%  { opacity: 0.03; background: linear-gradient(90deg, rgba(0,229,255,0.1) 0%, transparent 40%, rgba(179,136,255,0.06) 100%); transform: translateX(-2px); }
+  66%  { opacity: 0.04; background: linear-gradient(90deg, transparent 20%, rgba(0,230,118,0.06) 50%, transparent 80%); transform: translateX(1px); }
   100% { opacity: 0; transform: translateX(0); }
 }
 
@@ -95,8 +95,8 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 0 24px;
-  background: linear-gradient(180deg, rgba(42, 42, 46, 0.06) 0%, transparent 100%);
-  border-bottom: 1px solid rgba(140, 140, 150, 0.06);
+  background: linear-gradient(180deg, rgba(0, 229, 255, 0.02) 0%, transparent 100%);
+  border-bottom: 1px solid rgba(0, 229, 255, 0.04);
 }
 
 #top-left { flex: 1; }
@@ -112,18 +112,18 @@ body {
 
 #date-display {
   font-size: 11px;
-  color: var(--aluminum);
+  color: var(--cyan);
   letter-spacing: 2px;
-  text-shadow: 0 0 6px rgba(138, 138, 144, 0.3);
-  font-style: italic;
+  text-shadow: 0 0 8px rgba(0, 229, 255, 0.3);
+  opacity: 0.8;
 }
 
 #time-display {
   font-size: 26px;
-  font-weight: 700;
+  font-weight: 300;
   color: var(--white);
-  letter-spacing: 4px;
-  text-shadow: 0 0 10px rgba(240, 240, 245, 0.15);
+  letter-spacing: 5px;
+  text-shadow: 0 0 12px rgba(0, 229, 255, 0.15);
 }
 
 .top-label {
@@ -134,24 +134,24 @@ body {
 }
 
 .top-sep {
-  color: rgba(220, 20, 60, 0.5);
-  font-size: 10px;
+  color: rgba(179, 136, 255, 0.4);
+  font-size: 8px;
 }
 
 #met-display {
   font-size: 11px;
-  color: var(--gold);
+  color: var(--violet);
   letter-spacing: 1px;
-  text-shadow: 0 0 6px rgba(255, 215, 0, 0.3);
+  text-shadow: 0 0 6px rgba(179, 136, 255, 0.3);
 }
 
 #net-status {
   font-size: 11px;
-  color: var(--racing-green);
+  color: var(--logic-green);
   letter-spacing: 1px;
 }
 
-/* ─── Tachometer Gauge Row ─── */
+/* ─── Sensor Gauge Row ─── */
 #gauge-row {
   position: absolute;
   top: 42px;
@@ -162,7 +162,7 @@ body {
   padding: 0 10px;
 }
 
-.tach-gauge {
+.sensor-gauge {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -170,12 +170,12 @@ body {
   position: relative;
 }
 
-.tach-gauge canvas {
+.sensor-gauge canvas {
   width: 130px;
   height: 115px;
 }
 
-.tach-val {
+.sensor-val {
   position: absolute;
   top: 42%;
   left: 50%;
@@ -185,33 +185,32 @@ body {
   text-shadow: 0 0 12px rgba(0, 0, 0, 0.9), 0 0 4px rgba(0, 0, 0, 0.8);
 }
 
-.tv-num {
+.sv-num {
   font-size: 22px;
   font-weight: bold;
-  color: var(--white);
-  text-shadow: 0 0 8px currentColor, 0 0 4px rgba(0, 0, 0, 0.8);
+  color: var(--cyan);
+  text-shadow: 0 0 10px rgba(0, 229, 255, 0.5), 0 0 4px rgba(0, 0, 0, 0.8);
   transition: color 0.6s ease, text-shadow 0.6s ease;
 }
 
-.tv-num.flash {
+.sv-num.flash {
   text-shadow: 0 0 20px currentColor, 0 0 40px currentColor !important;
   transition: none !important;
 }
 
-.tv-unit {
+.sv-unit {
   font-size: 10px;
-  color: rgba(224, 224, 232, 0.5);
+  color: rgba(200, 216, 232, 0.4);
   margin-left: 1px;
 }
 
-.tach-lbl {
+.sensor-lbl {
   font-size: 10px;
-  letter-spacing: 1.5px;
+  letter-spacing: 2px;
   margin-top: 0px;
   color: var(--label);
   text-transform: uppercase;
-  font-style: italic;
-  text-shadow: 0 0 4px rgba(138, 138, 144, 0.15);
+  text-shadow: 0 0 4px rgba(0, 229, 255, 0.1);
 }
 
 /* ─── Panel Grid ─── */
@@ -226,64 +225,62 @@ body {
   gap: 10px;
 }
 
-/* ─── Carbon Fiber Panel Frame ─── */
-.panel.carbon {
+/* ─── PCB Module Panel Frame ─── */
+.panel.pcb {
   background: var(--panel-bg);
   border: 2px solid var(--panel-border);
-  border-radius: 6px;
+  border-radius: 4px;
   padding: 10px 14px;
   position: relative;
   overflow: hidden;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   box-shadow:
-    inset 0 1px 0 rgba(200, 200, 210, 0.03),
+    inset 0 1px 0 rgba(0, 229, 255, 0.03),
     inset 0 -1px 0 rgba(0, 0, 0, 0.3),
-    0 0 20px rgba(0, 0, 0, 0.3),
-    0 0 1px rgba(140, 140, 150, 0.15);
+    0 0 20px rgba(0, 229, 255, 0.03),
+    0 0 1px rgba(0, 229, 255, 0.1);
 }
 
-.panel.carbon::before {
+.panel.pcb::before {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(192, 192, 200, 0.12), transparent);
+  background: linear-gradient(90deg, transparent, rgba(0, 229, 255, 0.15), transparent);
 }
 
-/* Hex bolt accents */
-.hex-bolt {
+/* Through-hole via dots */
+.via-dot {
   position: absolute;
-  width: 6px;
-  height: 6px;
-  border-radius: 1px;
-  background: var(--gunmetal);
-  border: 1px solid rgba(140, 140, 150, 0.2);
-  transform: rotate(45deg);
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(0, 229, 255, 0.08);
+  border: 1px solid rgba(0, 229, 255, 0.15);
+  box-shadow: 0 0 3px rgba(0, 229, 255, 0.1);
 }
-.hex-bolt.tl { top: 5px; left: 5px; }
-.hex-bolt.tr { top: 5px; right: 5px; }
-.hex-bolt.bl { bottom: 5px; left: 5px; }
-.hex-bolt.br { bottom: 5px; right: 5px; }
+.via-dot.tl { top: 5px; left: 5px; }
+.via-dot.tr { top: 5px; right: 5px; }
+.via-dot.bl { bottom: 5px; left: 5px; }
+.via-dot.br { bottom: 5px; right: 5px; }
 
-/* Panel header - pit board style */
+/* Panel header - IC chip label */
 .panel-header {
   font-size: 13px;
-  color: var(--chrome);
+  color: var(--cyan);
   letter-spacing: 3px;
   margin-bottom: 5px;
-  text-shadow: 0 0 6px rgba(192, 192, 200, 0.25);
+  text-shadow: 0 0 8px rgba(0, 229, 255, 0.3);
   padding-bottom: 4px;
-  border-bottom: 1px solid rgba(140, 140, 150, 0.08);
-  font-weight: 700;
-  font-style: italic;
+  border-bottom: 1px solid rgba(0, 229, 255, 0.06);
   text-transform: uppercase;
 }
 
-.flag-icon {
-  font-size: 10px;
-  color: var(--ferrari-red);
-  text-shadow: 0 0 4px var(--ferrari-red);
+.chip-icon {
+  font-size: 9px;
+  color: var(--violet);
+  text-shadow: 0 0 4px var(--violet);
 }
 
 .panel-body {
@@ -292,20 +289,20 @@ body {
 }
 
 /* Panel canvases */
-#engine-block,
-#fuel-tank,
-#tire-wear,
-#telemetry {
+#neural-grid,
+#data-rack,
+#tensor-matrix,
+#mesh-network {
   width: 100%;
   display: block;
   margin-bottom: 4px;
-  border-radius: 3px;
+  border-radius: 2px;
 }
 
-#engine-block { height: 90px; }
-#fuel-tank { height: 100px; }
-#tire-wear { height: 90px; }
-#telemetry { height: 110px; }
+#neural-grid { height: 90px; }
+#data-rack { height: 100px; }
+#tensor-matrix { height: 90px; }
+#mesh-network { height: 110px; }
 
 /* ─── Stat Rows ─── */
 .stat-row {
@@ -321,7 +318,6 @@ body {
   letter-spacing: 0.5px;
   flex-shrink: 0;
   text-transform: uppercase;
-  font-style: italic;
 }
 
 .stat-row .val {
@@ -333,80 +329,69 @@ body {
   text-overflow: ellipsis;
 }
 
-.val-blue { color: var(--electric-blue) !important; text-shadow: 0 0 4px rgba(0, 136, 255, 0.4); }
-.val-green { color: var(--racing-green) !important; text-shadow: 0 0 4px rgba(0, 170, 85, 0.3); }
-.val-gold { color: var(--gold) !important; text-shadow: 0 0 4px rgba(255, 215, 0, 0.3); }
-.val-orange { color: var(--mclaren-orange) !important; text-shadow: 0 0 4px rgba(255, 128, 0, 0.4); }
-.val-red { color: var(--ferrari-red) !important; text-shadow: 0 0 4px rgba(220, 20, 60, 0.4); }
+.val-cyan { color: var(--cyan) !important; text-shadow: 0 0 6px rgba(0, 229, 255, 0.4); }
+.val-green { color: var(--logic-green) !important; text-shadow: 0 0 4px rgba(0, 230, 118, 0.3); }
+.val-violet { color: var(--violet) !important; text-shadow: 0 0 4px rgba(179, 136, 255, 0.3); }
+.val-orange { color: var(--servo-orange) !important; text-shadow: 0 0 4px rgba(255, 109, 0, 0.4); }
+.val-red { color: var(--crimson) !important; text-shadow: 0 0 4px rgba(255, 23, 68, 0.4); }
 
-/* ─── Drag Strip Bars (Storage) ─── */
-.drag-strip {
+/* ─── Data Vault Bars (Storage) ─── */
+.data-vault {
   display: flex;
   align-items: center;
   gap: 8px;
   margin: 4px 0;
 }
 
-.strip-label {
+.vault-label {
   color: var(--label);
-  font-size: 11px;
-  min-width: 50px;
-  font-style: italic;
+  font-size: 10px;
+  min-width: 55px;
+  letter-spacing: 0.5px;
 }
 
-.strip-track {
+.vault-tube {
   flex: 1;
   height: 16px;
-  border-radius: 3px;
-  background: rgba(42, 42, 46, 0.4);
-  border: 1px solid rgba(140, 140, 150, 0.08);
+  border-radius: 8px;
+  background: rgba(10, 22, 40, 0.5);
+  border: 1px solid rgba(0, 229, 255, 0.06);
   overflow: hidden;
   position: relative;
 }
 
-.strip-car {
+.vault-fill {
   height: 100%;
-  border-radius: 2px;
-  background: linear-gradient(90deg, var(--racing-green), var(--electric-blue));
-  box-shadow: 0 0 8px rgba(0, 136, 255, 0.3);
+  border-radius: 7px;
+  background: linear-gradient(90deg, var(--cyan), var(--violet));
+  box-shadow: 0 0 8px rgba(0, 229, 255, 0.25);
   transition: width 0.6s ease;
   width: 0%;
 }
 
-.strip-light {
-  position: absolute;
-  top: 2px;
-  left: 3px;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--racing-green);
-  box-shadow: 0 0 4px var(--racing-green);
-}
-
-.strip-text {
+.vault-text {
   color: var(--text);
   font-size: 11px;
   min-width: 40px;
   text-align: right;
 }
 
-/* ─── Speed Trails (I/O) ─── */
+/* ─── Signal Traces (I/O) ─── */
 .io-row {
   align-items: center;
 }
 
-.speed-trail {
+.signal-trace {
   flex: 1;
   height: 6px;
   border-radius: 3px;
   position: relative;
   overflow: hidden;
-  background: rgba(42, 42, 46, 0.15);
+  background: rgba(10, 22, 40, 0.3);
   margin: 0 6px;
 }
 
-.speed-needle {
+.signal-head {
   position: absolute;
   top: 0;
   height: 100%;
@@ -415,16 +400,16 @@ body {
   transition: width 0.6s ease;
 }
 
-.speed-trail.read .speed-needle {
+.signal-trace.read .signal-head {
   left: 0;
-  background: linear-gradient(90deg, transparent, var(--electric-blue), #fff);
-  box-shadow: 2px 0 8px var(--electric-blue);
+  background: linear-gradient(90deg, transparent, var(--cyan), #fff);
+  box-shadow: 2px 0 8px var(--cyan);
 }
 
-.speed-trail.write .speed-needle {
+.signal-trace.write .signal-head {
   right: 0; left: auto;
-  background: linear-gradient(270deg, transparent, var(--mclaren-orange), #fff);
-  box-shadow: -2px 0 8px var(--mclaren-orange);
+  background: linear-gradient(270deg, transparent, var(--logic-green), #fff);
+  box-shadow: -2px 0 8px var(--logic-green);
 }
 
 /* Registry row */
@@ -440,15 +425,14 @@ body {
   text-align: center;
   margin-top: 2px;
   letter-spacing: 0.5px;
-  font-style: italic;
 }
 
-/* ─── Pit Lane (Docker) ─── */
-.pit-lane {
+/* ─── Robot Assembly (Docker) ─── */
+.robot-assembly {
   margin-top: 4px;
 }
 
-.pit-box {
+.module-slot {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -456,39 +440,36 @@ body {
   line-height: 1.8;
 }
 
-.pit-light {
+.module-led {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: var(--racing-green);
-  box-shadow: 0 0 6px var(--racing-green);
+  background: var(--logic-green);
+  box-shadow: 0 0 6px var(--logic-green);
   flex-shrink: 0;
 }
 
-.pit-team {
-  color: var(--gold);
+.module-name {
+  color: var(--violet);
   letter-spacing: 0.5px;
-  font-style: italic;
-  text-transform: uppercase;
   font-size: 12px;
 }
 
-/* ─── Race Standings (Processes) ─── */
-.standings-label {
+/* ─── Task Scheduler (Processes) ─── */
+.scheduler-label {
   font-size: 10px;
   color: var(--label);
   letter-spacing: 1.5px;
   margin-top: 6px;
   margin-bottom: 2px;
   text-transform: uppercase;
-  font-style: italic;
 }
 
-.standings {
+.task-scheduler {
   margin-top: 2px;
 }
 
-.standing-entry {
+.task-entry {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -497,36 +478,36 @@ body {
   gap: 8px;
 }
 
-.standing-pos {
-  color: var(--chrome);
+.task-priority {
+  color: var(--titanium);
   font-weight: 700;
-  font-size: 11px;
+  font-size: 10px;
   min-width: 20px;
 }
 
-.standing-name {
-  color: var(--electric-blue);
-  font-style: italic;
+.task-name {
+  color: var(--cyan);
+  font-size: 12px;
 }
 
-.standing-bar {
+.task-bar {
   flex: 1;
   height: 4px;
   border-radius: 2px;
-  background: rgba(42, 42, 46, 0.15);
+  background: rgba(10, 22, 40, 0.3);
   overflow: hidden;
   margin: 0 4px;
 }
 
-.standing-bar-fill {
+.task-bar-fill {
   height: 100%;
   border-radius: 2px;
-  background: var(--mclaren-orange);
-  box-shadow: 0 0 4px var(--mclaren-orange);
+  background: var(--violet);
+  box-shadow: 0 0 4px var(--violet);
   transition: width 0.4s ease;
 }
 
-.standing-gap {
+.task-pct {
   color: var(--text);
   font-size: 12px;
   min-width: 40px;
@@ -539,9 +520,9 @@ body {
   bottom: 3px;
   left: 24px; right: 24px;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(220, 20, 60, 0.08), rgba(192, 192, 200, 0.06), rgba(0, 136, 255, 0.08), transparent);
+  background: linear-gradient(90deg, transparent, rgba(0,229,255,0.08), rgba(179,136,255,0.06), rgba(0,230,118,0.04), rgba(0,229,255,0.08), transparent);
   background-size: 200% 100%;
-  animation: divider-flow 4s linear infinite;
+  animation: divider-flow 5s linear infinite;
 }
 
 @keyframes divider-flow {

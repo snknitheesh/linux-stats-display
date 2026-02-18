@@ -3,13 +3,13 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 
-// ─── Seeded random for deterministic layouts ───
+// ─── Seeded random ───
 function seededRandom(seed) {
   let s = seed;
   return () => { s = (s * 9301 + 49297) % 233280; return s / 233280; };
 }
 
-// ─── Background Scene: Racing garage at night ───
+// ─── Background Scene: Neural network + binary rain ───
 class BackgroundScene {
   constructor() {
     this.width = window.innerWidth;
@@ -20,7 +20,7 @@ class BackgroundScene {
     this.scene = new THREE.Scene();
     const aspect = this.width / this.height;
     this.camera = new THREE.PerspectiveCamera(35, aspect, 1, 5000);
-    this.camera.position.set(0, 40, 350);
+    this.camera.position.set(0, 30, 400);
     this.camera.lookAt(0, 0, -100);
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -29,10 +29,8 @@ class BackgroundScene {
     this.renderer.setClearColor(0x000000, 0);
     document.getElementById('canvas-container').appendChild(this.renderer.domElement);
 
-    this.createBrakeDust();
-    this.createRainStreaks();
-    this.createLEDStrips();
-    this.createGarageFloor();
+    this.createNeuralNetwork();
+    this.createBinaryRain();
     this.createAmbientGlow();
     this.initPostProcessing();
 
@@ -47,149 +45,147 @@ class BackgroundScene {
     this.animate();
   }
 
-  createBrakeDust() {
-    const count = 150;
-    const geo = new THREE.BufferGeometry();
-    const pos = new Float32Array(count * 3);
-    this.dustData = [];
-    for (let i = 0; i < count; i++) {
-      pos[i * 3] = (Math.random() - 0.5) * 800;
-      pos[i * 3 + 1] = Math.random() * 200 - 30;
-      pos[i * 3 + 2] = -Math.random() * 500 - 50;
-      this.dustData.push({
-        vx: (Math.random() - 0.5) * 0.15,
-        vy: -0.01 - Math.random() * 0.03,
-        phase: Math.random() * Math.PI * 2,
-      });
+  createNeuralNetwork() {
+    // Neural nodes
+    const nodeCount = 80;
+    const nodeGeo = new THREE.BufferGeometry();
+    const nodePos = new Float32Array(nodeCount * 3);
+    this.neuralNodes = [];
+    const rand = seededRandom(42);
+    for (let i = 0; i < nodeCount; i++) {
+      const x = (rand() - 0.5) * 1000;
+      const y = (rand() - 0.5) * 500;
+      const z = -100 - rand() * 600;
+      nodePos[i * 3] = x; nodePos[i * 3 + 1] = y; nodePos[i * 3 + 2] = z;
+      this.neuralNodes.push({ x, y, z, phase: rand() * Math.PI * 2 });
     }
-    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-    const mat = new THREE.PointsMaterial({
-      color: 0x888890, size: 1.5, transparent: true, opacity: 0.12,
+    nodeGeo.setAttribute('position', new THREE.BufferAttribute(nodePos, 3));
+    const nodeMat = new THREE.PointsMaterial({
+      color: 0x00e5ff, size: 3, transparent: true, opacity: 0.2,
       blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true,
     });
-    this.dust = new THREE.Points(geo, mat);
-    this.scene.add(this.dust);
+    this.nodePoints = new THREE.Points(nodeGeo, nodeMat);
+    this.scene.add(this.nodePoints);
+
+    // Synaptic connections (lines between nearby nodes)
+    const linePairs = [];
+    for (let i = 0; i < nodeCount; i++) {
+      for (let j = i + 1; j < nodeCount; j++) {
+        const dx = this.neuralNodes[i].x - this.neuralNodes[j].x;
+        const dy = this.neuralNodes[i].y - this.neuralNodes[j].y;
+        const dz = this.neuralNodes[i].z - this.neuralNodes[j].z;
+        const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        if (dist < 200 && rand() > 0.5) linePairs.push([i, j]);
+      }
+    }
+    const linePos = new Float32Array(linePairs.length * 6);
+    linePairs.forEach(([a, b], idx) => {
+      linePos[idx * 6] = this.neuralNodes[a].x;
+      linePos[idx * 6 + 1] = this.neuralNodes[a].y;
+      linePos[idx * 6 + 2] = this.neuralNodes[a].z;
+      linePos[idx * 6 + 3] = this.neuralNodes[b].x;
+      linePos[idx * 6 + 4] = this.neuralNodes[b].y;
+      linePos[idx * 6 + 5] = this.neuralNodes[b].z;
+    });
+    const lineGeo = new THREE.BufferGeometry();
+    lineGeo.setAttribute('position', new THREE.BufferAttribute(linePos, 3));
+    const lineMat = new THREE.LineBasicMaterial({
+      color: 0x00e5ff, transparent: true, opacity: 0.03,
+      blending: THREE.AdditiveBlending, depthWrite: false,
+    });
+    this.synapseLines = new THREE.LineSegments(lineGeo, lineMat);
+    this.scene.add(this.synapseLines);
+
+    // Signal pulses (particles traveling along connections)
+    const pulseCount = 60;
+    const pulseGeo = new THREE.BufferGeometry();
+    const pulsePos = new Float32Array(pulseCount * 3);
+    this.pulseData = [];
+    for (let i = 0; i < pulseCount; i++) {
+      const pair = linePairs[Math.floor(rand() * linePairs.length)];
+      if (!pair) continue;
+      pulsePos[i * 3] = this.neuralNodes[pair[0]].x;
+      pulsePos[i * 3 + 1] = this.neuralNodes[pair[0]].y;
+      pulsePos[i * 3 + 2] = this.neuralNodes[pair[0]].z;
+      this.pulseData.push({
+        from: pair[0], to: pair[1], t: rand(), speed: 0.003 + rand() * 0.008,
+      });
+    }
+    pulseGeo.setAttribute('position', new THREE.BufferAttribute(pulsePos, 3));
+    const pulseMat = new THREE.PointsMaterial({
+      color: 0x00e5ff, size: 4, transparent: true, opacity: 0.5,
+      blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true,
+    });
+    this.pulsePoints = new THREE.Points(pulseGeo, pulseMat);
+    this.scene.add(this.pulsePoints);
+    this.linePairs = linePairs;
   }
 
-  createRainStreaks() {
-    const count = 80;
+  createBinaryRain() {
+    // Faint vertical binary streams
+    const count = 120;
     const geo = new THREE.BufferGeometry();
     const pos = new Float32Array(count * 3);
     this.rainData = [];
     for (let i = 0; i < count; i++) {
-      pos[i * 3] = (Math.random() - 0.5) * 600;
+      pos[i * 3] = (Math.random() - 0.5) * 800;
       pos[i * 3 + 1] = 300 + Math.random() * 200;
-      pos[i * 3 + 2] = -200 - Math.random() * 400;
-      this.rainData.push({
-        speed: 2 + Math.random() * 3,
-        resetY: 300 + Math.random() * 200,
-      });
+      pos[i * 3 + 2] = -150 - Math.random() * 400;
+      this.rainData.push({ speed: 0.3 + Math.random() * 0.8, resetY: 300 + Math.random() * 200 });
     }
     geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
     const mat = new THREE.PointsMaterial({
-      color: 0x6688AA, size: 0.8, transparent: true, opacity: 0.08,
+      color: 0x1a3a6a, size: 1.0, transparent: true, opacity: 0.06,
       blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true,
     });
     this.rain = new THREE.Points(geo, mat);
     this.scene.add(this.rain);
   }
 
-  createLEDStrips() {
-    this.ledStrips = [];
-    const stripTex = (() => {
-      const c = document.createElement('canvas');
-      c.width = 256; c.height = 8;
-      const ctx = c.getContext('2d');
-      const grad = ctx.createLinearGradient(0, 4, 256, 4);
-      grad.addColorStop(0, 'rgba(200, 210, 230, 0)');
-      grad.addColorStop(0.3, 'rgba(200, 210, 230, 0.12)');
-      grad.addColorStop(0.5, 'rgba(200, 210, 230, 0.18)');
-      grad.addColorStop(0.7, 'rgba(200, 210, 230, 0.12)');
-      grad.addColorStop(1, 'rgba(200, 210, 230, 0)');
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, 256, 8);
-      return new THREE.CanvasTexture(c);
-    })();
-
-    for (let i = 0; i < 4; i++) {
-      const mat = new THREE.SpriteMaterial({
-        map: stripTex, transparent: true, opacity: 0.06,
-        blending: THREE.AdditiveBlending, depthWrite: false,
-      });
-      const sprite = new THREE.Sprite(mat);
-      sprite.position.set(-200 + i * 130, 200, -300 - Math.random() * 100);
-      sprite.scale.set(300, 3, 1);
-      this.scene.add(sprite);
-      this.ledStrips.push({ sprite, baseOpacity: 0.04 + Math.random() * 0.03, phase: Math.random() * Math.PI * 2 });
-    }
-  }
-
-  createGarageFloor() {
-    const count = 200;
-    const geo = new THREE.BufferGeometry();
-    const pos = new Float32Array(count * 3);
-    for (let i = 0; i < count; i++) {
-      pos[i * 3] = (Math.random() - 0.5) * 1000;
-      pos[i * 3 + 1] = -60 + Math.random() * 5;
-      pos[i * 3 + 2] = -Math.random() * 500 - 50;
-    }
-    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-    const mat = new THREE.PointsMaterial({
-      color: 0x333340, size: 3, transparent: true, opacity: 0.06,
-      blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true,
-    });
-    this.floor = new THREE.Points(geo, mat);
-    this.scene.add(this.floor);
-  }
-
   createAmbientGlow() {
-    // Distant track barrier glow (through garage door)
     const glowTex = (() => {
       const c = document.createElement('canvas');
       c.width = 64; c.height = 64;
       const ctx = c.getContext('2d');
       const grad = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
-      grad.addColorStop(0, 'rgba(0, 136, 255, 0.15)');
-      grad.addColorStop(0.5, 'rgba(0, 100, 200, 0.04)');
+      grad.addColorStop(0, 'rgba(0, 229, 255, 0.08)');
+      grad.addColorStop(0.5, 'rgba(10, 22, 40, 0.03)');
       grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, 64, 64);
       return new THREE.CanvasTexture(c);
     })();
 
-    const positions = [[-350, 30, -500], [350, 30, -500], [0, 80, -600]];
-    this.glows = [];
-    positions.forEach(pos => {
+    [[-200, 50, -400], [200, -30, -350], [0, 100, -500]].forEach(pos => {
       const mat = new THREE.SpriteMaterial({
-        map: glowTex, transparent: true, opacity: 0.04,
+        map: glowTex, transparent: true, opacity: 0.05,
         blending: THREE.AdditiveBlending, depthWrite: false,
       });
       const sprite = new THREE.Sprite(mat);
       sprite.position.set(...pos);
-      sprite.scale.set(200, 100, 1);
+      sprite.scale.set(300, 200, 1);
       this.scene.add(sprite);
-      this.glows.push({ sprite, phase: Math.random() * Math.PI * 2 });
     });
 
-    // Ferrari red accent glow
-    const redTex = (() => {
+    // Violet accent
+    const vTex = (() => {
       const c = document.createElement('canvas');
       c.width = 64; c.height = 64;
       const ctx = c.getContext('2d');
       const grad = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
-      grad.addColorStop(0, 'rgba(220, 20, 60, 0.08)');
+      grad.addColorStop(0, 'rgba(179, 136, 255, 0.06)');
       grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, 64, 64);
       return new THREE.CanvasTexture(c);
     })();
-    const redSprite = new THREE.Sprite(new THREE.SpriteMaterial({
-      map: redTex, transparent: true, opacity: 0.03,
+    const vs = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: vTex, transparent: true, opacity: 0.04,
       blending: THREE.AdditiveBlending, depthWrite: false,
     }));
-    redSprite.position.set(-200, -20, -300);
-    redSprite.scale.set(300, 150, 1);
-    this.scene.add(redSprite);
+    vs.position.set(-150, -50, -300);
+    vs.scale.set(250, 150, 1);
+    this.scene.add(vs);
   }
 
   initPostProcessing() {
@@ -198,7 +194,7 @@ class BackgroundScene {
     renderPass.clearAlpha = 0;
     this.composer.addPass(renderPass);
     this.bloomPass = new UnrealBloomPass(
-      new THREE.Vector2(this.width, this.height), 0.8, 1.0, 0.5
+      new THREE.Vector2(this.width, this.height), 1.0, 1.0, 0.4
     );
     this.composer.addPass(this.bloomPass);
   }
@@ -209,62 +205,74 @@ class BackgroundScene {
     requestAnimationFrame(() => this.animate());
     const t = this.clock.getElapsedTime();
 
-    // Brake dust drifts
-    const dPos = this.dust.geometry.attributes.position.array;
-    this.dustData.forEach((dd, i) => {
-      dPos[i * 3] += dd.vx + Math.sin(t * 0.2 + dd.phase) * 0.03;
-      dPos[i * 3 + 1] += dd.vy;
-      if (dPos[i * 3 + 1] < -60) { dPos[i * 3 + 1] = 200; dPos[i * 3] = (Math.random() - 0.5) * 800; }
+    // Neural nodes pulse
+    this.neuralNodes.forEach((n, i) => {
+      const pulse = 0.15 + Math.sin(t * 0.5 + n.phase) * 0.08;
+      // Modulated by system intensity
+      const active = pulse + this.intensity * 0.15;
     });
-    this.dust.geometry.attributes.position.needsUpdate = true;
-    this.dust.material.opacity = 0.08 + this.intensity * 0.06;
+    this.nodePoints.material.opacity = 0.15 + this.intensity * 0.2;
+    this.nodePoints.material.size = 2.5 + this.intensity * 2;
 
-    // Rain falls
+    // Synapse lines pulse
+    this.synapseLines.material.opacity = 0.02 + this.intensity * 0.03;
+
+    // Signal pulses travel
+    const pPos = this.pulsePoints.geometry.attributes.position.array;
+    this.pulseData.forEach((pd, i) => {
+      pd.t += pd.speed + this.intensity * 0.005;
+      if (pd.t > 1) {
+        pd.t = 0;
+        // Pick new random connection
+        const newPair = this.linePairs[Math.floor(Math.random() * this.linePairs.length)];
+        if (newPair) { pd.from = newPair[0]; pd.to = newPair[1]; }
+      }
+      const nA = this.neuralNodes[pd.from];
+      const nB = this.neuralNodes[pd.to];
+      if (nA && nB) {
+        pPos[i * 3] = nA.x + (nB.x - nA.x) * pd.t;
+        pPos[i * 3 + 1] = nA.y + (nB.y - nA.y) * pd.t;
+        pPos[i * 3 + 2] = nA.z + (nB.z - nA.z) * pd.t;
+      }
+    });
+    this.pulsePoints.geometry.attributes.position.needsUpdate = true;
+    this.pulsePoints.material.opacity = 0.3 + this.intensity * 0.4;
+
+    // Binary rain falls
     const rPos = this.rain.geometry.attributes.position.array;
     this.rainData.forEach((rd, i) => {
       rPos[i * 3 + 1] -= rd.speed;
-      if (rPos[i * 3 + 1] < -80) {
+      if (rPos[i * 3 + 1] < -150) {
         rPos[i * 3 + 1] = rd.resetY;
-        rPos[i * 3] = (Math.random() - 0.5) * 600;
+        rPos[i * 3] = (Math.random() - 0.5) * 800;
       }
     });
     this.rain.geometry.attributes.position.needsUpdate = true;
 
-    // LED strips flicker subtly
-    this.ledStrips.forEach(led => {
-      led.sprite.material.opacity = led.baseOpacity * (0.7 + Math.sin(t * 0.5 + led.phase) * 0.3);
-    });
-
-    // Track barrier glows pulse
-    this.glows.forEach(g => {
-      g.sprite.material.opacity = 0.03 + Math.sin(t * 0.3 + g.phase) * 0.015;
-    });
-
-    // Bloom responds to load
-    this.bloomPass.strength = 0.6 + this.intensity * 0.5;
+    this.bloomPass.strength = 0.8 + this.intensity * 0.6;
     this.composer.render();
   }
 }
 
-// ─── Tachometer Gauge Row: 7 analog racing dials ───
-const TACH_CONFIGS = [
-  { name: 'cpu',     accent: '#DC143C', type: 'tach',    redline: 0.85 },
-  { name: 'ram',     accent: '#0088FF', type: 'boost',   redline: 0.90 },
-  { name: 'gpu',     accent: '#00BBDD', type: 'turbo',   redline: 0.85 },
-  { name: 'cpuTmp',  accent: '#FF8000', type: 'coolant', redline: 0.80 },
-  { name: 'gpuTmp',  accent: '#FF8000', type: 'oil',     redline: 0.80 },
-  { name: 'cpuPwr',  accent: '#FFD700', type: 'hp',      redline: 0.90 },
-  { name: 'gpuPwr',  accent: '#FFD700', type: 'torque',  redline: 0.90 },
+// ─── Robotic Sensor Gauges: 7 iris/sensor modules ───
+const SENSOR_CONFIGS = [
+  { name: 'cpu',     type: 'iris',     accent: '#00e5ff' },
+  { name: 'ram',     type: 'lidar',    accent: '#0088ff' },
+  { name: 'gpu',     type: 'thermal',  accent: '#00bbdd' },
+  { name: 'cpuTmp',  type: 'infrared', accent: '#ff6d00' },
+  { name: 'gpuTmp',  type: 'cryo',     accent: '#b388ff' },
+  { name: 'cpuPwr',  type: 'reactor',  accent: '#ff6d00' },
+  { name: 'gpuPwr',  type: 'capacitor', accent: '#00e5ff' },
 ];
 
-class TachGaugeRow {
+class SensorGaugeRow {
   constructor() {
     this.gauges = [];
     this.time = 0;
     for (let i = 0; i < 7; i++) {
-      const canvas = document.getElementById(`tach-${i}`);
+      const canvas = document.getElementById(`sensor-${i}`);
       const ctx = canvas.getContext('2d');
-      this.gauges.push({ canvas, ctx, config: TACH_CONFIGS[i], value: 0, displayValue: 0 });
+      this.gauges.push({ canvas, ctx, config: SENSOR_CONFIGS[i], value: 0, displayValue: 0 });
     }
     this._animate();
   }
@@ -274,7 +282,7 @@ class TachGaugeRow {
   }
 
   setDisplay(index, text) {
-    const el = document.getElementById(`tv-${index}`);
+    const el = document.getElementById(`sv-${index}`);
     if (!el) return;
     const old = el.textContent;
     el.textContent = text;
@@ -288,11 +296,7 @@ class TachGaugeRow {
     requestAnimationFrame(() => this._animate());
     this.time += 0.016;
     this.gauges.forEach(g => {
-      // Smooth needle movement with micro-oscillation
-      const diff = g.value - g.displayValue;
-      g.displayValue += diff * 0.12;
-      // Micro-bounce like real analog gauge
-      g.displayValue += Math.sin(this.time * 8 + g.config.redline * 10) * 0.002 * g.value;
+      g.displayValue += (g.value - g.displayValue) * 0.1;
       this._drawGauge(g);
     });
   }
@@ -300,164 +304,307 @@ class TachGaugeRow {
   _drawGauge(g) {
     const { ctx, canvas, config, displayValue } = g;
     const w = canvas.width, h = canvas.height;
-    const cx = w / 2, cy = h / 2 + 2;
-    const r = 42;
+    const cx = w / 2, cy = h / 2 - 4;
+    const r = 40;
     ctx.clearRect(0, 0, w, h);
 
-    // Sweep from 7 o'clock (225°) to 5 o'clock (315° → -45° → wrapped to 315°)
-    // Actually: 7 o'clock = ~225° = 5π/4, 5 o'clock = ~315° = 7π/4 (going clockwise through top)
-    // Full sweep = 270° from 225° clockwise to 315° (passing through 0°/top)
-    const startAngle = Math.PI * 0.75;  // 135° in standard math = 7 o'clock visually
-    const endAngle = Math.PI * 2.25;    // 405° = 45° past full circle = 5 o'clock
-    const sweepRange = endAngle - startAngle; // 270° = 1.5π
-
-    // Chrome bezel ring
+    // Titanium housing ring
     ctx.beginPath();
     ctx.arc(cx, cy, r + 4, 0, Math.PI * 2);
-    const bezelGrad = ctx.createRadialGradient(cx - 3, cy - 3, r, cx, cy, r + 5);
-    bezelGrad.addColorStop(0, '#555560');
-    bezelGrad.addColorStop(0.5, '#888890');
-    bezelGrad.addColorStop(1, '#444448');
-    ctx.strokeStyle = bezelGrad;
+    const housingGrad = ctx.createRadialGradient(cx - 2, cy - 2, r, cx, cy, r + 5);
+    housingGrad.addColorStop(0, '#3a4858');
+    housingGrad.addColorStop(0.5, '#5a6a7a');
+    housingGrad.addColorStop(1, '#2a3848');
+    ctx.strokeStyle = housingGrad;
     ctx.lineWidth = 3;
     ctx.stroke();
 
-    // Dark face
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    const faceGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-    faceGrad.addColorStop(0, '#1a1a20');
-    faceGrad.addColorStop(1, '#0d0d12');
-    ctx.fillStyle = faceGrad;
-    ctx.fill();
-
-    // Tick marks and numbers
-    const majorTicks = 10;
-    for (let i = 0; i <= majorTicks; i++) {
-      const frac = i / majorTicks;
-      const angle = startAngle + frac * sweepRange;
-      const isRedline = frac >= config.redline;
-
-      // Major tick
-      const outerR = r - 3;
-      const innerR = r - 10;
+    // Status LEDs around bezel
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * Math.PI * 2 - Math.PI / 2;
+      const lx = cx + Math.cos(a) * (r + 6);
+      const ly = cy + Math.sin(a) * (r + 6);
       ctx.beginPath();
-      ctx.moveTo(cx + Math.cos(angle) * innerR, cy + Math.sin(angle) * innerR);
-      ctx.lineTo(cx + Math.cos(angle) * outerR, cy + Math.sin(angle) * outerR);
-      ctx.strokeStyle = isRedline ? '#DC143C' : 'rgba(220, 220, 230, 0.6)';
-      ctx.lineWidth = isRedline ? 2 : 1.5;
-      ctx.stroke();
-
-      // Minor ticks
-      if (i < majorTicks) {
-        for (let j = 1; j < 5; j++) {
-          const mFrac = (i + j / 5) / majorTicks;
-          const mAngle = startAngle + mFrac * sweepRange;
-          const mInner = r - 6;
-          ctx.beginPath();
-          ctx.moveTo(cx + Math.cos(mAngle) * mInner, cy + Math.sin(mAngle) * mInner);
-          ctx.lineTo(cx + Math.cos(mAngle) * outerR, cy + Math.sin(mAngle) * outerR);
-          ctx.strokeStyle = mFrac >= config.redline ? 'rgba(220, 20, 60, 0.4)' : 'rgba(180, 180, 190, 0.25)';
-          ctx.lineWidth = 0.5;
-          ctx.stroke();
-        }
-      }
+      ctx.arc(lx, ly, 1, 0, Math.PI * 2);
+      const ledActive = (i / 8) < displayValue;
+      ctx.fillStyle = ledActive ? config.accent : 'rgba(60, 80, 100, 0.3)';
+      if (ledActive) { ctx.shadowColor = config.accent; ctx.shadowBlur = 3; }
+      ctx.fill();
+      ctx.shadowBlur = 0;
     }
 
-    // Redline zone arc
-    const redStart = startAngle + config.redline * sweepRange;
+    // Dark sensor face
     ctx.beginPath();
-    ctx.arc(cx, cy, r - 1.5, redStart, endAngle);
-    ctx.strokeStyle = 'rgba(220, 20, 60, 0.25)';
-    ctx.lineWidth = 3;
-    ctx.stroke();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fillStyle = '#060810';
+    ctx.fill();
 
-    // Colored arc for current value
+    // Draw type-specific sensor
+    if (config.type === 'iris') this._drawIris(ctx, cx, cy, r, displayValue);
+    else if (config.type === 'lidar') this._drawLidar(ctx, cx, cy, r, displayValue);
+    else if (config.type === 'thermal') this._drawThermal(ctx, cx, cy, r, displayValue);
+    else if (config.type === 'infrared') this._drawInfrared(ctx, cx, cy, r, displayValue);
+    else if (config.type === 'cryo') this._drawCryo(ctx, cx, cy, r, displayValue);
+    else if (config.type === 'reactor') this._drawReactor(ctx, cx, cy, r, displayValue);
+    else if (config.type === 'capacitor') this._drawCapacitor(ctx, cx, cy, r, displayValue);
+
+    // Progress arc
     if (displayValue > 0.001) {
-      const valAngle = startAngle + displayValue * sweepRange;
+      const angle = displayValue * Math.PI * 2;
       ctx.beginPath();
-      ctx.arc(cx, cy, r - 7, startAngle, valAngle);
+      ctx.arc(cx, cy, r - 2, -Math.PI / 2, -Math.PI / 2 + angle);
       let arcColor = config.accent;
-      if (displayValue >= config.redline) arcColor = '#DC143C';
+      if (displayValue > 0.85) arcColor = '#ff1744';
+      else if (displayValue > 0.7) arcColor = '#ff6d00';
       ctx.strokeStyle = arcColor;
       ctx.lineWidth = 2;
-      ctx.globalAlpha = 0.3;
+      ctx.globalAlpha = 0.4;
       ctx.stroke();
       ctx.globalAlpha = 1;
     }
+  }
 
-    // Needle
-    const needleAngle = startAngle + Math.max(0, Math.min(1, displayValue)) * sweepRange;
-    const needleLen = r - 8;
-    const needleTail = 8;
+  _drawIris(ctx, cx, cy, r, val) {
+    // Mechanical aperture blades
+    const bladeCount = 8;
+    const pupilR = r * (0.15 + val * 0.55); // Dilates with load
+    const irisR = r * 0.85;
     ctx.save();
-    ctx.translate(cx, cy);
-    ctx.rotate(needleAngle);
-    // Needle body
+    for (let i = 0; i < bladeCount; i++) {
+      const angle = (i / bladeCount) * Math.PI * 2 + this.time * 0.3;
+      const spread = pupilR / r;
+      ctx.beginPath();
+      const bx1 = cx + Math.cos(angle) * pupilR;
+      const by1 = cy + Math.sin(angle) * pupilR;
+      const bx2 = cx + Math.cos(angle + 0.4) * irisR;
+      const by2 = cy + Math.sin(angle + 0.4) * irisR;
+      const bx3 = cx + Math.cos(angle + 0.2) * irisR;
+      const by3 = cy + Math.sin(angle + 0.2) * irisR;
+      ctx.moveTo(bx1, by1);
+      ctx.lineTo(bx2, by2);
+      ctx.lineTo(bx3, by3);
+      ctx.closePath();
+      ctx.fillStyle = `rgba(20, 40, 60, ${0.6 + val * 0.3})`;
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(0, 229, 255, 0.15)';
+      ctx.lineWidth = 0.5;
+      ctx.stroke();
+    }
+    // Pupil glow
+    const pupilGlow = ctx.createRadialGradient(cx, cy, 0, cx, cy, pupilR);
+    let pupilColor = val < 0.5 ? 'rgba(0, 229, 255, 0.3)' : (val < 0.8 ? 'rgba(255, 109, 0, 0.3)' : 'rgba(255, 23, 68, 0.4)');
+    pupilGlow.addColorStop(0, pupilColor);
+    pupilGlow.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = pupilGlow;
     ctx.beginPath();
-    ctx.moveTo(needleLen, 0);
-    ctx.lineTo(2, -1.5);
-    ctx.lineTo(-needleTail, 0);
-    ctx.lineTo(2, 1.5);
-    ctx.closePath();
-    let needleColor = displayValue >= config.redline ? '#DC143C' : config.accent;
-    ctx.fillStyle = needleColor;
-    ctx.shadowColor = needleColor;
-    ctx.shadowBlur = 6;
-    ctx.fill();
-    ctx.shadowBlur = 0;
-    // Center hub
-    ctx.beginPath();
-    ctx.arc(0, 0, 4, 0, Math.PI * 2);
-    ctx.fillStyle = '#444450';
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(0, 0, 2.5, 0, Math.PI * 2);
-    ctx.fillStyle = '#888890';
+    ctx.arc(cx, cy, pupilR, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
+  }
 
-    // Thermal backlight for temp gauges
-    if (config.type === 'coolant' || config.type === 'oil') {
-      const thermal = displayValue;
-      let glowColor;
-      if (thermal < 0.4) glowColor = `rgba(0, 100, 255, ${thermal * 0.15})`;
-      else if (thermal < 0.65) glowColor = `rgba(200, 160, 0, ${0.06 + thermal * 0.08})`;
-      else glowColor = `rgba(220, 20, 60, ${0.08 + thermal * 0.12})`;
-      const thermalGlow = ctx.createRadialGradient(cx, cy, 0, cx, cy, r * 0.6);
-      thermalGlow.addColorStop(0, glowColor);
-      thermalGlow.addColorStop(1, 'rgba(0,0,0,0)');
-      ctx.fillStyle = thermalGlow;
+  _drawLidar(ctx, cx, cy, r, val) {
+    // Concentric scanning rings
+    const ringCount = 5;
+    const fillRings = Math.ceil(val * ringCount);
+    for (let i = 1; i <= ringCount; i++) {
+      const ringR = (i / ringCount) * r * 0.8;
       ctx.beginPath();
-      ctx.arc(cx, cy, r * 0.6, 0, Math.PI * 2);
+      ctx.arc(cx, cy, ringR, 0, Math.PI * 2);
+      const isFilled = i <= fillRings;
+      ctx.strokeStyle = isFilled ? `rgba(0, 136, 255, ${0.2 + val * 0.3})` : 'rgba(0, 136, 255, 0.06)';
+      ctx.lineWidth = isFilled ? 2 : 0.5;
+      if (isFilled) { ctx.shadowColor = '#0088ff'; ctx.shadowBlur = 4; }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
+    // Sweep line
+    const sweepAngle = this.time * 1.5;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + Math.cos(sweepAngle) * r * 0.8, cy + Math.sin(sweepAngle) * r * 0.8);
+    ctx.strokeStyle = 'rgba(0, 136, 255, 0.3)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  _drawThermal(ctx, cx, cy, r, val) {
+    // False-color heat map
+    const imgR = r * 0.75;
+    const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, imgR);
+    if (val < 0.3) {
+      grad.addColorStop(0, 'rgba(0, 100, 200, 0.3)');
+      grad.addColorStop(1, 'rgba(0, 40, 80, 0.1)');
+    } else if (val < 0.6) {
+      grad.addColorStop(0, 'rgba(200, 200, 0, 0.3)');
+      grad.addColorStop(0.5, 'rgba(0, 180, 200, 0.2)');
+      grad.addColorStop(1, 'rgba(0, 40, 80, 0.1)');
+    } else {
+      grad.addColorStop(0, 'rgba(255, 60, 20, 0.4)');
+      grad.addColorStop(0.4, 'rgba(255, 200, 0, 0.25)');
+      grad.addColorStop(1, 'rgba(0, 80, 120, 0.1)');
+    }
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(cx, cy, imgR, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  _drawInfrared(ctx, cx, cy, r, val) {
+    // Glowing thermal core
+    const coreR = r * 0.5;
+    const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, coreR);
+    if (val < 0.4) {
+      grad.addColorStop(0, `rgba(80, 60, 200, ${0.2 + val * 0.3})`);
+      grad.addColorStop(1, 'rgba(0,0,0,0)');
+    } else if (val < 0.7) {
+      grad.addColorStop(0, `rgba(255, 180, 0, ${0.3 + val * 0.3})`);
+      grad.addColorStop(1, 'rgba(0,0,0,0)');
+    } else {
+      grad.addColorStop(0, `rgba(255, 255, 220, ${0.4 + val * 0.3})`);
+      grad.addColorStop(0.5, `rgba(255, 109, 0, ${0.2 + val * 0.2})`);
+      grad.addColorStop(1, 'rgba(0,0,0,0)');
+    }
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(cx, cy, coreR, 0, Math.PI * 2);
+    ctx.fill();
+    // Heat rings
+    for (let i = 1; i <= 3; i++) {
+      ctx.beginPath();
+      ctx.arc(cx, cy, coreR + i * 6, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(255, 109, 0, ${0.03 * val * (4 - i)})`;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+  }
+
+  _drawCryo(ctx, cx, cy, r, val) {
+    // Frost crystals that melt with temperature
+    const frostIntensity = 1 - val; // More frost when cool
+    const rand = seededRandom(99);
+    for (let i = 0; i < 12; i++) {
+      const angle = rand() * Math.PI * 2;
+      const dist = rand() * r * 0.7;
+      const fx = cx + Math.cos(angle) * dist;
+      const fy = cy + Math.sin(angle) * dist;
+      const size = 2 + rand() * 4;
+      // Crystal
+      ctx.save();
+      ctx.translate(fx, fy);
+      ctx.rotate(angle);
+      ctx.beginPath();
+      ctx.moveTo(0, -size * frostIntensity);
+      ctx.lineTo(size * 0.3 * frostIntensity, 0);
+      ctx.lineTo(0, size * frostIntensity);
+      ctx.lineTo(-size * 0.3 * frostIntensity, 0);
+      ctx.closePath();
+      ctx.fillStyle = `rgba(179, 200, 255, ${frostIntensity * 0.25})`;
       ctx.fill();
+      ctx.restore();
+    }
+    // Central cold/hot indicator
+    const cGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r * 0.4);
+    if (val < 0.5) {
+      cGrad.addColorStop(0, `rgba(100, 150, 255, ${0.15 + frostIntensity * 0.15})`);
+    } else {
+      cGrad.addColorStop(0, `rgba(255, 100, 50, ${val * 0.2})`);
+    }
+    cGrad.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = cGrad;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r * 0.4, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  _drawReactor(ctx, cx, cy, r, val) {
+    // Tokamak ring with plasma
+    const ringR = r * 0.6;
+    ctx.beginPath();
+    ctx.arc(cx, cy, ringR, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(255, 109, 0, 0.1)';
+    ctx.lineWidth = 8;
+    ctx.stroke();
+    // Plasma glow
+    if (val > 0.01) {
+      const plasmaAngle = val * Math.PI * 2;
+      ctx.beginPath();
+      ctx.arc(cx, cy, ringR, -Math.PI / 2 + this.time * 0.5, -Math.PI / 2 + this.time * 0.5 + plasmaAngle);
+      const intensity = 0.2 + val * 0.5;
+      ctx.strokeStyle = `rgba(255, 150, 30, ${intensity})`;
+      ctx.lineWidth = 6;
+      ctx.shadowColor = '#ff6d00';
+      ctx.shadowBlur = 10 * val;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
+    // Core dot
+    ctx.beginPath();
+    ctx.arc(cx, cy, 4, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255, 200, 100, ${0.3 + val * 0.5})`;
+    ctx.fill();
+  }
+
+  _drawCapacitor(ctx, cx, cy, r, val) {
+    // Two electrode poles with energy arcs
+    const poleH = r * 0.6;
+    const gap = r * 0.4;
+    // Left pole
+    ctx.fillStyle = '#3a4858';
+    ctx.fillRect(cx - gap - 4, cy - poleH / 2, 4, poleH);
+    // Right pole
+    ctx.fillRect(cx + gap, cy - poleH / 2, 4, poleH);
+    // Energy arcs between poles
+    const arcCount = Math.floor(val * 6);
+    for (let i = 0; i < arcCount; i++) {
+      const arcY = cy - poleH / 2 + (i + 0.5) * (poleH / (arcCount || 1));
+      ctx.beginPath();
+      ctx.moveTo(cx - gap, arcY);
+      const midX = cx;
+      const midY = arcY + (Math.sin(this.time * 4 + i * 2) * 4);
+      ctx.quadraticCurveTo(midX, midY, cx + gap, arcY);
+      ctx.strokeStyle = `rgba(0, 229, 255, ${0.2 + val * 0.4})`;
+      ctx.lineWidth = 1 + val;
+      ctx.shadowColor = '#00e5ff';
+      ctx.shadowBlur = 4 * val;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
     }
   }
 }
 
-// ─── Engine Block (CPU Cores) ───
-class EngineBlock {
+// ─── Neural Grid (CPU Cores) ───
+class NeuralGrid {
   constructor(canvasId, coreCount) {
     this.canvas = document.getElementById(canvasId);
     this.ctx = this.canvas.getContext('2d');
     this.coreCount = coreCount;
     this.coreLoads = new Array(coreCount).fill(0);
     this.time = 0;
-
-    // V-configuration: 2 rows (banks), staggered
-    const cols = Math.ceil(coreCount / 2);
+    const rand = seededRandom(777);
+    const cols = 8, rows = Math.ceil(coreCount / cols);
     const xStep = this.canvas.width / (cols + 1);
-    const yMid = this.canvas.height / 2;
-    const vAngle = 12; // V-spread in pixels
-    this.cylinders = [];
-    for (let i = 0; i < coreCount; i++) {
-      const bank = i % 2; // 0 = left bank, 1 = right bank
-      const col = Math.floor(i / 2);
-      this.cylinders.push({
-        x: (col + 1) * xStep,
-        y: yMid + (bank === 0 ? -vAngle : vAngle),
-        bank,
-      });
+    const yStep = this.canvas.height / (rows + 1);
+    this.neurons = [];
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        if (this.neurons.length >= coreCount) break;
+        this.neurons.push({
+          x: (c + 1) * xStep + (rand() - 0.5) * xStep * 0.25,
+          y: (r + 1) * yStep + (rand() - 0.5) * yStep * 0.2,
+        });
+      }
+    }
+    // Dendrite connections
+    this.dendrites = [];
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const idx = r * cols + c;
+        if (idx >= coreCount) break;
+        if (c < cols - 1 && idx + 1 < coreCount && rand() > 0.2)
+          this.dendrites.push([idx, idx + 1]);
+        if (r < rows - 1 && idx + cols < coreCount && rand() > 0.4)
+          this.dendrites.push([idx, idx + cols]);
+      }
     }
   }
 
@@ -473,78 +620,82 @@ class EngineBlock {
   draw() {
     const { ctx, canvas } = this;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    const cylW = 16, cylH = 22;
 
-    // Center crankcase line
-    ctx.beginPath();
-    ctx.moveTo(20, canvas.height / 2);
-    ctx.lineTo(canvas.width - 20, canvas.height / 2);
-    ctx.strokeStyle = 'rgba(100, 100, 110, 0.15)';
-    ctx.lineWidth = 2;
-    ctx.stroke();
+    // Dendrite connections
+    ctx.lineWidth = 0.8;
+    this.dendrites.forEach(([a, b]) => {
+      const avgLoad = (this.coreLoads[a] + this.coreLoads[b]) / 2;
+      ctx.beginPath();
+      ctx.moveTo(this.neurons[a].x, this.neurons[a].y);
+      ctx.lineTo(this.neurons[b].x, this.neurons[b].y);
+      let lineColor = avgLoad < 0.3 ? `rgba(0, 229, 255, ${0.03 + avgLoad * 0.08})`
+                     : avgLoad < 0.7 ? `rgba(0, 229, 255, ${0.05 + avgLoad * 0.15})`
+                     : `rgba(255, 109, 0, ${0.1 + avgLoad * 0.15})`;
+      ctx.strokeStyle = lineColor;
+      ctx.lineWidth = 0.5 + avgLoad * 1.5;
+      ctx.stroke();
+    });
 
-    this.cylinders.forEach((cyl, i) => {
-      const load = this.coreLoads[i];
-      const px = cyl.x - cylW / 2, py = cyl.y - cylH / 2;
-
-      // Cylinder bore
-      ctx.fillStyle = `rgba(20, 20, 25, 0.6)`;
-      ctx.fillRect(px, py, cylW, cylH);
-      ctx.strokeStyle = `rgba(100, 100, 115, ${0.15 + load * 0.2})`;
-      ctx.lineWidth = 0.8;
-      ctx.strokeRect(px, py, cylW, cylH);
-
-      // Piston position and combustion
-      const pistonY = py + cylH * (1 - load * 0.7);
-      const pistonH = 4;
-
-      // Combustion glow (above piston)
-      if (load > 0.1) {
-        const combustH = pistonY - py;
-        if (combustH > 0) {
-          let combustColor;
-          if (load < 0.3) combustColor = `rgba(80, 60, 30, ${load * 0.6})`;
-          else if (load < 0.6) combustColor = `rgba(200, 120, 20, ${0.2 + load * 0.3})`;
-          else if (load < 0.85) combustColor = `rgba(255, 140, 0, ${0.3 + load * 0.4})`;
-          else combustColor = `rgba(255, 60, 30, ${0.5 + load * 0.4})`;
-
-          ctx.fillStyle = combustColor;
-          ctx.fillRect(px + 1, py, cylW - 2, combustH);
-
-          // Fire flash for high load
-          if (load > 0.7 && Math.sin(this.time * 6 + i * 2) > 0.3) {
-            ctx.fillStyle = `rgba(255, 200, 50, ${0.15 + load * 0.2})`;
-            ctx.fillRect(px + 2, py + 1, cylW - 4, Math.min(combustH, 6));
-          }
-        }
+    // Signal pulses traveling along active dendrites
+    this.dendrites.forEach(([a, b]) => {
+      const avgLoad = (this.coreLoads[a] + this.coreLoads[b]) / 2;
+      if (avgLoad > 0.3) {
+        const t = (this.time * 2 + a * 0.5) % 1;
+        const px = this.neurons[a].x + (this.neurons[b].x - this.neurons[a].x) * t;
+        const py = this.neurons[a].y + (this.neurons[b].y - this.neurons[a].y) * t;
+        ctx.beginPath();
+        ctx.arc(px, py, 1.5, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(0, 229, 255, ${avgLoad * 0.5})`;
+        ctx.fill();
       }
+    });
 
-      // Piston head
-      ctx.fillStyle = load > 0.85 ? '#883030' : '#555560';
-      ctx.fillRect(px + 1, pistonY, cylW - 2, pistonH);
+    // Neuron nodes
+    this.neurons.forEach((neuron, i) => {
+      const load = this.coreLoads[i];
+      const radius = 2.5 + load * 4;
+      let color;
+      if (load < 0.25) color = 'rgba(0, 229, 255, 0.3)';
+      else if (load < 0.5) color = 'rgba(0, 229, 255, 0.6)';
+      else if (load < 0.75) color = 'rgba(255, 200, 0, 0.7)';
+      else color = 'rgba(255, 23, 68, 0.8)';
 
-      // Cherry-red warning glow for maxed cores
+      // Firing flash
+      const firing = load > 0.5 && Math.sin(this.time * 6 + i * 1.5) > 0.5;
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(neuron.x, neuron.y, radius, 0, Math.PI * 2);
+      ctx.fillStyle = color;
+      ctx.shadowColor = firing ? '#fff' : (load > 0.75 ? '#ff1744' : '#00e5ff');
+      ctx.shadowBlur = firing ? 12 : radius * 2;
+      ctx.fill();
+      ctx.restore();
+
+      // Overload crackle for maxed cores
       if (load > 0.9) {
-        ctx.save();
-        ctx.shadowColor = '#DC143C';
-        ctx.shadowBlur = 8;
-        ctx.strokeStyle = 'rgba(220, 20, 60, 0.4)';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(px, py, cylW, cylH);
-        ctx.restore();
+        for (let j = 0; j < 3; j++) {
+          const ca = Math.random() * Math.PI * 2;
+          const cd = radius + Math.random() * 5;
+          ctx.beginPath();
+          ctx.moveTo(neuron.x, neuron.y);
+          ctx.lineTo(neuron.x + Math.cos(ca) * cd, neuron.y + Math.sin(ca) * cd);
+          ctx.strokeStyle = 'rgba(255, 23, 68, 0.3)';
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
       }
     });
   }
 }
 
-// ─── Fuel Tank (Memory) ───
-class FuelTank {
+// ─── Data Rack (Memory) ───
+class DataRack {
   constructor(canvasId) {
     this.canvas = document.getElementById(canvasId);
     this.ctx = this.canvas.getContext('2d');
     this.data = { percent: 0, swapPercent: 0, loadavg: [0, 0, 0] };
     this.time = 0;
-    this.sloshPhase = 0;
   }
 
   update(memData) {
@@ -560,238 +711,149 @@ class FuelTank {
     const w = canvas.width, h = canvas.height;
     ctx.clearRect(0, 0, w, h);
     this.time += 0.03;
-    this.sloshPhase += 0.04;
 
-    // Main fuel cell outline (F1 bladder tank shape)
-    const tankL = w * 0.12, tankR = w * 0.68, tankT = h * 0.12, tankB = h * 0.88;
-    const tankW = tankR - tankL, tankH = tankB - tankT;
+    // Main rack (DIMM slots)
+    const rackL = w * 0.08, rackR = w * 0.65, rackT = h * 0.08, rackB = h * 0.92;
+    const slotCount = 16;
+    const slotH = (rackB - rackT) / slotCount;
+    const filledSlots = Math.round(data.percent * slotCount);
 
-    // Tank body outline
-    ctx.beginPath();
-    ctx.roundRect(tankL, tankT, tankW, tankH, 6);
-    ctx.strokeStyle = 'rgba(140, 140, 150, 0.2)';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-
-    // Fuel quantity markings
-    for (let i = 0; i <= 4; i++) {
-      const markY = tankB - (i / 4) * tankH;
-      ctx.beginPath();
-      ctx.moveTo(tankL - 5, markY);
-      ctx.lineTo(tankL, markY);
-      ctx.strokeStyle = 'rgba(140, 140, 150, 0.3)';
-      ctx.lineWidth = 1;
-      ctx.stroke();
-      ctx.fillStyle = 'rgba(140, 140, 150, 0.3)';
-      ctx.font = '7px monospace';
-      ctx.textAlign = 'right';
-      ctx.fillText(`${i * 25}%`, tankL - 7, markY + 3);
-    }
-
-    // Fuel level (amber liquid)
-    const fuelH = tankH * data.percent;
-    const fuelY = tankB - fuelH;
-
-    if (data.percent > 0.01) {
-      ctx.save();
-      ctx.beginPath();
-      ctx.roundRect(tankL + 1, tankT + 1, tankW - 2, tankH - 2, 5);
-      ctx.clip();
-
-      // Fuel gradient
-      let fuelColor1, fuelColor2;
-      if (data.percent < 0.5) {
-        fuelColor1 = 'rgba(200, 160, 40, 0.35)';
-        fuelColor2 = 'rgba(180, 120, 20, 0.5)';
-      } else if (data.percent < 0.8) {
-        fuelColor1 = 'rgba(220, 140, 20, 0.4)';
-        fuelColor2 = 'rgba(200, 100, 10, 0.55)';
-      } else {
-        fuelColor1 = 'rgba(220, 60, 40, 0.4)';
-        fuelColor2 = 'rgba(200, 40, 20, 0.55)';
-      }
-      const fuelGrad = ctx.createLinearGradient(0, fuelY, 0, tankB);
-      fuelGrad.addColorStop(0, fuelColor1);
-      fuelGrad.addColorStop(1, fuelColor2);
-      ctx.fillStyle = fuelGrad;
-      ctx.fillRect(tankL, fuelY, tankW, fuelH);
-
-      // Slosh wave on surface
-      ctx.beginPath();
-      for (let x = tankL; x < tankR; x += 2) {
-        const wave = Math.sin((x - tankL) * 0.06 + this.sloshPhase) * 2
-                   + Math.sin((x - tankL) * 0.1 + this.sloshPhase * 1.3) * 1;
-        if (x === tankL) ctx.moveTo(x, fuelY + wave);
-        else ctx.lineTo(x, fuelY + wave);
-      }
-      ctx.strokeStyle = 'rgba(255, 220, 120, 0.2)';
-      ctx.lineWidth = 1;
-      ctx.stroke();
-      ctx.restore();
-    }
-
-    // Auxiliary tank (Swap)
-    const auxL = w * 0.74, auxR = w * 0.88, auxT = h * 0.25, auxB = h * 0.75;
-    const auxW = auxR - auxL, auxH = auxB - auxT;
-    ctx.beginPath();
-    ctx.roundRect(auxL, auxT, auxW, auxH, 4);
-    ctx.strokeStyle = 'rgba(140, 140, 150, 0.15)';
+    // Rack frame
+    ctx.strokeStyle = 'rgba(0, 229, 255, 0.1)';
     ctx.lineWidth = 1;
-    ctx.stroke();
-    ctx.fillStyle = 'rgba(140, 140, 150, 0.25)';
+    ctx.strokeRect(rackL, rackT, rackR - rackL, rackB - rackT);
+
+    for (let i = 0; i < slotCount; i++) {
+      const sy = rackT + i * slotH;
+      const isFilled = i < filledSlots;
+
+      // Slot background
+      ctx.fillStyle = isFilled ? 'rgba(0, 229, 255, 0.08)' : 'rgba(10, 22, 40, 0.3)';
+      ctx.fillRect(rackL + 1, sy + 1, rackR - rackL - 2, slotH - 2);
+
+      if (isFilled) {
+        // Active DIMM with data stream
+        const streamX = rackL + 4 + ((this.time * 50 + i * 15) % (rackR - rackL - 8));
+        ctx.beginPath();
+        ctx.arc(streamX, sy + slotH / 2, 1.5, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(0, 229, 255, 0.4)';
+        ctx.fill();
+
+        // Module edge glow
+        ctx.fillStyle = `rgba(0, 229, 255, ${0.02 + data.percent * 0.04})`;
+        ctx.fillRect(rackL + 2, sy + 1, 3, slotH - 2);
+      } else {
+        // Empty slot placeholder
+        ctx.strokeStyle = 'rgba(30, 50, 70, 0.15)';
+        ctx.lineWidth = 0.5;
+        ctx.strokeRect(rackL + 4, sy + 2, rackR - rackL - 8, slotH - 4);
+      }
+    }
+
+    // Swap rack
+    const swapL = w * 0.70, swapR = w * 0.82;
+    ctx.strokeStyle = data.swapPercent > 0.01 ? 'rgba(255, 109, 0, 0.15)' : 'rgba(0, 229, 255, 0.06)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(swapL, rackT, swapR - swapL, rackB - rackT);
+    ctx.fillStyle = 'rgba(90, 70, 50, 0.2)';
     ctx.font = '7px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText('AUX', auxL + auxW / 2, auxT - 4);
+    ctx.fillText('SWAP', swapL + (swapR - swapL) / 2, rackT - 3);
 
     if (data.swapPercent > 0.01) {
-      const swapH = auxH * data.swapPercent;
-      const swapGrad = ctx.createLinearGradient(0, auxB - swapH, 0, auxB);
-      swapGrad.addColorStop(0, 'rgba(0, 136, 255, 0.25)');
-      swapGrad.addColorStop(1, 'rgba(0, 100, 200, 0.4)');
-      ctx.fillStyle = swapGrad;
-      ctx.fillRect(auxL + 1, auxB - swapH, auxW - 2, swapH);
+      const swapFillH = (rackB - rackT) * data.swapPercent;
+      ctx.fillStyle = 'rgba(255, 109, 0, 0.15)';
+      ctx.fillRect(swapL + 1, rackB - swapFillH, swapR - swapL - 2, swapFillH);
     }
 
-    // Gear ratios (load average) — sequential gearbox display
-    const gearX = w * 0.9, gearY = h * 0.15;
-    const gearSlots = ['1st', '2nd', '3rd'];
+    // Load average actuators
+    const actX = w * 0.88;
     data.loadavg.forEach((load, i) => {
-      const gy = gearY + i * 22;
-      const isHot = load > 5;
-      ctx.fillStyle = isHot ? 'rgba(220, 20, 60, 0.15)' : 'rgba(42, 42, 46, 0.3)';
-      ctx.fillRect(gearX - 12, gy, 24, 16);
-      ctx.strokeStyle = isHot ? 'rgba(220, 20, 60, 0.3)' : 'rgba(140, 140, 150, 0.15)';
-      ctx.lineWidth = 0.8;
-      ctx.strokeRect(gearX - 12, gy, 24, 16);
-      ctx.fillStyle = isHot ? '#DC143C' : 'rgba(224, 224, 232, 0.5)';
-      ctx.font = '8px monospace';
+      const ay = rackT + 10 + i * 28;
+      const deflection = Math.min(load / 10, 1);
+      // Strain gauge
+      ctx.fillStyle = 'rgba(58, 72, 88, 0.3)';
+      ctx.fillRect(actX - 10, ay, 20, 18);
+      ctx.strokeStyle = 'rgba(0, 229, 255, 0.1)';
+      ctx.lineWidth = 0.5;
+      ctx.strokeRect(actX - 10, ay, 20, 18);
+      // Deflection indicator
+      const barW = deflection * 16;
+      ctx.fillStyle = deflection > 0.7 ? 'rgba(255, 23, 68, 0.4)' : 'rgba(0, 229, 255, 0.3)';
+      ctx.fillRect(actX - 8, ay + 6, barW, 6);
+      ctx.fillStyle = 'rgba(200, 216, 232, 0.4)';
+      ctx.font = '7px monospace';
       ctx.textAlign = 'center';
-      ctx.fillText(load.toFixed(1), gearX, gy + 11);
+      ctx.fillText(load.toFixed(1), actX, ay + 28);
     });
   }
 }
 
-// ─── Tire Wear (GPU VRAM) ───
-class TireWear {
+// ─── Tensor Matrix (GPU VRAM) ───
+class TensorMatrix {
   constructor(canvasId) {
     this.canvas = document.getElementById(canvasId);
     this.ctx = this.canvas.getContext('2d');
     this.value = 0;
-    this.gpuName = '';
-    this.vramTotal = 0;
     this.time = 0;
   }
 
-  update(used, total, gpuName) {
+  update(used, total) {
     this.value = total > 0 ? used / total : 0;
-    this.gpuName = gpuName || '';
-    this.vramTotal = total;
     this.draw();
   }
 
   draw() {
     const { ctx, canvas, value } = this;
     const w = canvas.width, h = canvas.height;
-    const cx = w * 0.3, cy = h / 2;
-    const tireR = 32;
     ctx.clearRect(0, 0, w, h);
-    this.time += 0.01;
+    this.time += 0.02;
 
-    // Tire outer circle (sidewall)
-    ctx.beginPath();
-    ctx.arc(cx, cy, tireR, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(60, 60, 65, 0.6)';
-    ctx.lineWidth = 8;
-    ctx.stroke();
+    // Tensor core matrix grid
+    const cols = 20, rows = 6;
+    const cellW = (w - 20) / cols;
+    const cellH = (h - 10) / rows;
+    const totalCells = cols * rows;
+    const filledCells = Math.round(value * totalCells);
 
-    // Tread surface — degrades with VRAM usage
-    ctx.beginPath();
-    ctx.arc(cx, cy, tireR - 4, 0, Math.PI * 2);
-    const treadColor = value < 0.5 ? '#2a4a2a' : (value < 0.8 ? '#4a4a20' : '#3a2020');
-    ctx.fillStyle = treadColor;
-    ctx.fill();
+    // Compute wave position
+    const wavePos = (this.time * 0.5) % 1;
 
-    // Tread grooves (disappear with usage = tire going slick)
-    const grooveCount = 8;
-    const grooveDepth = 1 - value; // 1 = fresh grooves, 0 = slick
-    if (grooveDepth > 0.05) {
-      for (let i = 0; i < grooveCount; i++) {
-        const angle = (i / grooveCount) * Math.PI * 2;
-        const innerR = tireR * 0.3;
-        const outerR = tireR - 5;
-        ctx.beginPath();
-        ctx.moveTo(cx + Math.cos(angle) * innerR, cy + Math.sin(angle) * innerR);
-        ctx.lineTo(cx + Math.cos(angle) * outerR, cy + Math.sin(angle) * outerR);
-        ctx.strokeStyle = `rgba(15, 15, 18, ${grooveDepth * 0.5})`;
-        ctx.lineWidth = 2 * grooveDepth;
-        ctx.stroke();
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const idx = r * cols + c;
+        const cx = 10 + c * cellW;
+        const cy = 5 + r * cellH;
+        const isFilled = idx < filledCells;
+
+        // Wave highlight effect
+        const cellFrac = idx / totalCells;
+        const waveDist = Math.abs(cellFrac - wavePos);
+        const waveGlow = waveDist < 0.1 ? (1 - waveDist / 0.1) * 0.3 : 0;
+
+        if (isFilled) {
+          let cellColor;
+          if (value < 0.5) cellColor = `rgba(0, 229, 255, ${0.15 + waveGlow})`;
+          else if (value < 0.8) cellColor = `rgba(0, 180, 220, ${0.2 + waveGlow})`;
+          else cellColor = `rgba(255, 109, 0, ${0.2 + waveGlow})`;
+          ctx.fillStyle = cellColor;
+          ctx.fillRect(cx + 1, cy + 1, cellW - 2, cellH - 2);
+        } else {
+          ctx.fillStyle = `rgba(10, 22, 40, ${0.2 + waveGlow * 0.3})`;
+          ctx.fillRect(cx + 1, cy + 1, cellW - 2, cellH - 2);
+        }
+
+        // Cell border
+        ctx.strokeStyle = isFilled ? 'rgba(0, 229, 255, 0.08)' : 'rgba(30, 50, 70, 0.06)';
+        ctx.lineWidth = 0.3;
+        ctx.strokeRect(cx + 1, cy + 1, cellW - 2, cellH - 2);
       }
     }
-
-    // Optimal zone coloring (green when fresh, red when worn)
-    let zoneColor;
-    if (value < 0.4) zoneColor = 'rgba(0, 170, 85, 0.12)';
-    else if (value < 0.7) zoneColor = 'rgba(255, 200, 0, 0.1)';
-    else zoneColor = 'rgba(220, 20, 60, 0.12)';
-    ctx.beginPath();
-    ctx.arc(cx, cy, tireR - 5, 0, Math.PI * 2);
-    ctx.fillStyle = zoneColor;
-    ctx.fill();
-
-    // Sidewall text
-    ctx.save();
-    ctx.fillStyle = 'rgba(140, 140, 150, 0.35)';
-    ctx.font = '6px monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText(`${this.vramTotal} MiB`, cx, cy + tireR + 12);
-    ctx.restore();
-
-    // Brake disc (GPU temp) — to the right
-    const discX = w * 0.65, discY = cy;
-    const discR = 25;
-
-    // Disc rotor
-    ctx.beginPath();
-    ctx.arc(discX, discY, discR, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(80, 80, 88, 0.4)';
-    ctx.lineWidth = 6;
-    ctx.stroke();
-
-    // Ventilation slots
-    for (let i = 0; i < 12; i++) {
-      const a = (i / 12) * Math.PI * 2;
-      ctx.beginPath();
-      ctx.moveTo(discX + Math.cos(a) * discR * 0.4, discY + Math.sin(a) * discR * 0.4);
-      ctx.lineTo(discX + Math.cos(a) * discR * 0.85, discY + Math.sin(a) * discR * 0.85);
-      ctx.strokeStyle = 'rgba(30, 30, 35, 0.5)';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-    }
-
-    // Thermal glow on disc (based on value as proxy for heat)
-    if (value > 0.2) {
-      const heat = value;
-      let heatColor;
-      if (heat < 0.4) heatColor = `rgba(100, 60, 30, ${heat * 0.3})`;
-      else if (heat < 0.7) heatColor = `rgba(200, 80, 20, ${0.1 + heat * 0.2})`;
-      else heatColor = `rgba(255, 120, 40, ${0.2 + heat * 0.3})`;
-      const heatGrad = ctx.createRadialGradient(discX, discY, 0, discX, discY, discR);
-      heatGrad.addColorStop(0, heatColor);
-      heatGrad.addColorStop(1, 'rgba(0,0,0,0)');
-      ctx.fillStyle = heatGrad;
-      ctx.beginPath();
-      ctx.arc(discX, discY, discR, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    // Caliper
-    ctx.fillStyle = 'rgba(220, 20, 60, 0.3)';
-    ctx.fillRect(discX - 4, discY - discR - 2, 8, 8);
   }
 }
 
-// ─── Telemetry Trace (Network) ───
-class TelemetryTrace {
+// ─── Mesh Network (Network) ───
+class MeshNetwork {
   constructor(canvasId) {
     this.canvas = document.getElementById(canvasId);
     this.ctx = this.canvas.getContext('2d');
@@ -816,58 +878,68 @@ class TelemetryTrace {
     ctx.clearRect(0, 0, w, h);
     this.time += 0.02;
 
-    // Grid background (F1 telemetry style)
-    ctx.strokeStyle = 'rgba(100, 100, 110, 0.06)';
+    // Grid background
+    ctx.strokeStyle = 'rgba(0, 229, 255, 0.03)';
     ctx.lineWidth = 0.5;
-    // Horizontal
-    for (let y = 0; y < h; y += 20) {
-      ctx.beginPath();
-      ctx.moveTo(0, y); ctx.lineTo(w, y);
-      ctx.stroke();
-    }
-    // Vertical
-    for (let x = 0; x < w; x += 30) {
-      ctx.beginPath();
-      ctx.moveTo(x, 0); ctx.lineTo(x, h);
-      ctx.stroke();
-    }
+    for (let y = 0; y < h; y += 20) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+    for (let x = 0; x < w; x += 30) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
 
-    // Download trace (electric blue — throttle)
-    this._drawTrace(this.historyDown, 'rgba(0, 136, 255, 0.7)', 'rgba(0, 136, 255, 0.06)');
-    // Upload trace (red — brake)
-    this._drawTrace(this.historyUp, 'rgba(220, 20, 60, 0.5)', 'rgba(220, 20, 60, 0.03)');
+    // Central node
+    const cx = w * 0.08, cy = h / 2;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 6, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(0, 229, 255, 0.3)';
+    ctx.shadowColor = '#00e5ff';
+    ctx.shadowBlur = 8;
+    ctx.fill();
+    ctx.shadowBlur = 0;
 
-    // Data flow particles
+    // Satellite nodes
+    const rand = seededRandom(42);
+    const satellites = [];
+    for (let i = 0; i < 5; i++) {
+      satellites.push({ x: cx + 30 + rand() * 40, y: 10 + rand() * (h - 20) });
+    }
+    satellites.forEach(s => {
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, 3, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(179, 136, 255, 0.2)';
+      ctx.fill();
+      // Connection line
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(s.x, s.y);
+      ctx.strokeStyle = 'rgba(0, 229, 255, 0.05)';
+      ctx.lineWidth = 0.5;
+      ctx.stroke();
+    });
+
+    // Telemetry traces (main visualization)
+    const traceL = w * 0.2;
+    // Download (cyan)
+    this._drawTrace(this.historyDown, traceL, 'rgba(0, 229, 255, 0.6)', 'rgba(0, 229, 255, 0.04)');
+    // Upload (violet)
+    this._drawTrace(this.historyUp, traceL, 'rgba(179, 136, 255, 0.5)', 'rgba(179, 136, 255, 0.03)');
+
+    // Packets flowing
     const t = this.time;
     const lastDown = this.historyDown[this.historyDown.length - 1] || 0;
-    const lastUp = this.historyUp[this.historyUp.length - 1] || 0;
-    const numDown = Math.min(8, Math.ceil(lastDown / (this.maxVal * 0.1)));
-    for (let i = 0; i < numDown; i++) {
-      const px = ((t * 70 + i * 35) % w);
+    const numPkt = Math.min(6, Math.ceil(lastDown / (this.maxVal * 0.15)));
+    for (let i = 0; i < numPkt; i++) {
+      const px = traceL + ((t * 60 + i * 30) % (w - traceL));
       const py = h / 2 + Math.sin(t * 2 + i) * 6;
-      ctx.beginPath();
-      ctx.arc(px, py, 1.5, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(0, 136, 255, 0.4)';
-      ctx.fill();
-    }
-    const numUp = Math.min(5, Math.ceil(lastUp / (this.maxVal * 0.1)));
-    for (let i = 0; i < numUp; i++) {
-      const px = w - ((t * 55 + i * 30) % w);
-      const py = h / 2 + Math.sin(t * 2.5 + i + 3) * 5;
-      ctx.beginPath();
-      ctx.arc(px, py, 1.2, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(220, 20, 60, 0.35)';
-      ctx.fill();
+      ctx.fillStyle = 'rgba(0, 229, 255, 0.35)';
+      ctx.fillRect(px - 2, py - 1, 4, 2);
     }
   }
 
-  _drawTrace(data, strokeColor, fillColor) {
+  _drawTrace(data, offsetX, strokeColor, fillColor) {
     const { ctx, canvas, maxVal } = this;
-    const w = canvas.width, h = canvas.height;
+    const w = canvas.width - offsetX, h = canvas.height;
     const step = w / (data.length - 1);
     ctx.beginPath();
     data.forEach((v, i) => {
-      const x = i * step;
+      const x = offsetX + i * step;
       const y = h - (v / maxVal) * (h - 8) - 4;
       if (i === 0) ctx.moveTo(x, y);
       else ctx.lineTo(x, y);
@@ -875,46 +947,45 @@ class TelemetryTrace {
     ctx.strokeStyle = strokeColor;
     ctx.lineWidth = 1.5;
     ctx.stroke();
-    ctx.lineTo(w, h);
-    ctx.lineTo(0, h);
+    ctx.lineTo(offsetX + w, h);
+    ctx.lineTo(offsetX, h);
     ctx.closePath();
     ctx.fillStyle = fillColor;
     ctx.fill();
   }
 }
 
-// ─── Pit Lane (Docker) ───
-class PitLane {
+// ─── Robot Assembly (Docker) ───
+class RobotAssembly {
   constructor(containerId) { this.container = document.getElementById(containerId); }
   update(names) {
-    this.container.innerHTML = names.map(n => {
-      const teamName = n.toUpperCase().replace(/-/g, ' ') + ' RACING';
-      return `<div class="pit-box"><span class="pit-light"></span><span class="pit-team">${teamName}</span></div>`;
-    }).join('');
+    this.container.innerHTML = names.map(n =>
+      `<div class="module-slot"><span class="module-led"></span><span class="module-name">${n.toUpperCase()} [ACTIVE]</span></div>`
+    ).join('');
   }
 }
 
-// ─── Race Standings (Processes) ───
-class RaceStandings {
+// ─── Task Scheduler (Processes) ───
+class TaskScheduler {
   constructor(containerId) { this.container = document.getElementById(containerId); }
   update(procs) {
-    const teamColors = ['#DC143C', '#0088FF', '#FF8000', '#00AA55', '#FFD700'];
+    const colors = ['#00e5ff', '#b388ff', '#00e676', '#ff6d00', '#ff1744'];
     this.container.innerHTML = procs.map((p, i) => {
       if (!p.name) return '';
       const pct = parseFloat(p.cpu) || 0;
       const width = Math.min(100, pct * 5);
-      const color = teamColors[i % teamColors.length];
-      return `<div class="standing-entry">
-        <span class="standing-pos">P${i + 1}</span>
-        <span class="standing-name" style="color:${color}">${p.name}</span>
-        <div class="standing-bar"><div class="standing-bar-fill" style="width:${width}%;background:${color};box-shadow:0 0 4px ${color}"></div></div>
-        <span class="standing-gap">${p.cpu}%</span>
+      const color = colors[i % colors.length];
+      return `<div class="task-entry">
+        <span class="task-priority">P${i + 1}</span>
+        <span class="task-name" style="color:${color}">${p.name}</span>
+        <div class="task-bar"><div class="task-bar-fill" style="width:${width}%;background:${color};box-shadow:0 0 4px ${color}"></div></div>
+        <span class="task-pct">${p.cpu}%</span>
       </div>`;
     }).filter(Boolean).join('');
   }
 }
 
-// ─── Uptime to Stint Timer format ───
+// ─── Uptime to Mission Timer ───
 function uptimeToMET(str) {
   if (!str || str === 'N/A') return 'T+00:00:00';
   let d = 0, h = 0, m = 0;
@@ -932,13 +1003,13 @@ class HoloStatsApp {
   constructor() {
     this.bg = new BackgroundScene();
     this.glitchEl = document.getElementById('glitch-flash');
-    this.tachGauges = new TachGaugeRow();
-    this.engineBlock = new EngineBlock('engine-block', 32);
-    this.fuelTank = new FuelTank('fuel-tank');
-    this.tireWear = new TireWear('tire-wear');
-    this.telemetry = new TelemetryTrace('telemetry');
-    this.pitLane = new PitLane('pit-lane');
-    this.standings = new RaceStandings('standings');
+    this.sensorGauges = new SensorGaugeRow();
+    this.neuralGrid = new NeuralGrid('neural-grid', 32);
+    this.dataRack = new DataRack('data-rack');
+    this.tensorMatrix = new TensorMatrix('tensor-matrix');
+    this.meshNetwork = new MeshNetwork('mesh-network');
+    this.robotAssembly = new RobotAssembly('robot-assembly');
+    this.taskScheduler = new TaskScheduler('task-scheduler');
 
     this.el = {
       time: document.getElementById('time-display'),
@@ -983,17 +1054,17 @@ class HoloStatsApp {
 
     this.updateTime();
     setInterval(() => this.updateTime(), 1000);
-    this.scheduleCautionFlash();
+    this.scheduleAnomalyFlash();
   }
 
-  scheduleCautionFlash() {
+  scheduleAnomalyFlash() {
     setTimeout(() => {
       if (this.glitchEl) {
         this.glitchEl.classList.add('active');
-        setTimeout(() => this.glitchEl.classList.remove('active'), 200);
+        setTimeout(() => this.glitchEl.classList.remove('active'), 180);
       }
-      this.scheduleCautionFlash();
-    }, 8000 + Math.random() * 18000);
+      this.scheduleAnomalyFlash();
+    }, 7000 + Math.random() * 16000);
   }
 
   updateTime() {
@@ -1001,7 +1072,7 @@ class HoloStatsApp {
     const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
     const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
     if (this.el.time) this.el.time.textContent = now.toLocaleTimeString('en-GB', { hour12: false });
-    if (this.el.date) this.el.date.textContent = `SESSION ${days[now.getDay()]} ${String(now.getDate()).padStart(2, '0')}.${months[now.getMonth()]}.${now.getFullYear()}`;
+    if (this.el.date) this.el.date.textContent = `TIMESTAMP: ${days[now.getDay()]} ${String(now.getDate()).padStart(2, '0')} ${months[now.getMonth()]} ${now.getFullYear()}`;
   }
 
   updateGauges(s) {
@@ -1019,8 +1090,8 @@ class HoloStatsApp {
       `${s.cpu.power}`, `${s.gpu.power.toFixed(0)}`,
     ];
     values.forEach((v, i) => {
-      this.tachGauges.setValue(i, v);
-      this.tachGauges.setDisplay(i, displays[i]);
+      this.sensorGauges.setValue(i, v);
+      this.sensorGauges.setDisplay(i, displays[i]);
     });
   }
 
@@ -1038,101 +1109,86 @@ class HoloStatsApp {
     };
 
     // CPU
-    setRow(el.cpuModel, 'CHASSIS', s.cpu.model);
-    setRow(el.cpuLoad, 'THROTTLE', `${s.cpu.usage}%`, 'val-blue');
-    setRow(el.cpuFreq, 'RPM', `${(s.cpu.freq * 1000).toFixed(0)} MHz`, 'val-gold');
-    setRow(el.cpuTemp, 'COOLANT', s.cpu.temp, 'val-orange');
+    setRow(el.cpuModel, 'MODULE', s.cpu.model);
+    setRow(el.cpuLoad, 'LOAD', `${s.cpu.usage}%`, 'val-cyan');
+    setRow(el.cpuFreq, 'CLOCK', `${s.cpu.freq} GHz`, 'val-violet');
+    setRow(el.cpuTemp, 'THERMAL', s.cpu.temp, 'val-orange');
 
     // Memory
-    setRow(el.ram, 'FUEL', `${fmt(s.memory.used)} / ${fmt(s.memory.total)}`);
-    setRow(el.ramPct, 'LEVEL', `${s.memory.percent}%`, 'val-orange');
-    setRow(el.ramFree, 'RESERVE', fmt(s.memory.free), 'val-green');
-    setRow(el.swap, 'AUX TANK', `${fmt(s.memory.swapUsed)} / ${fmt(s.memory.swapTotal)}`);
-    setRow(el.loadavg, 'GEARS', s.system.loadavg);
+    setRow(el.ram, 'DIMM', `${fmt(s.memory.used)} / ${fmt(s.memory.total)}`);
+    setRow(el.ramPct, 'ALLOC', `${s.memory.percent}%`, 'val-cyan');
+    setRow(el.ramFree, 'FREE', fmt(s.memory.free), 'val-green');
+    setRow(el.swap, 'SWAP OVF', `${fmt(s.memory.swapUsed)} / ${fmt(s.memory.swapTotal)}`);
+    setRow(el.loadavg, 'ACTUATORS', s.system.loadavg);
 
-    // Storage drag strips
-    const updateStrip = (id, data) => {
+    // Storage vaults
+    const updateVault = (id, data) => {
       const el = document.getElementById(id);
       if (!el) return;
-      const car = el.querySelector('.strip-car');
-      const text = el.querySelector('.strip-text');
-      const light = el.querySelector('.strip-light');
-      if (car) car.style.width = `${data.percent}%`;
+      const fill = el.querySelector('.vault-fill');
+      const text = el.querySelector('.vault-text');
+      if (fill) fill.style.width = `${data.percent}%`;
       if (text) text.textContent = `${data.percent}%`;
-      // Stage lights: green < 75%, yellow 75-90%, red > 90%
-      if (light) {
-        if (data.percent > 90) {
-          light.style.background = '#DC143C';
-          light.style.boxShadow = '0 0 4px #DC143C';
-        } else if (data.percent > 75) {
-          light.style.background = '#FF8000';
-          light.style.boxShadow = '0 0 4px #FF8000';
-        } else {
-          light.style.background = '#00AA55';
-          light.style.boxShadow = '0 0 4px #00AA55';
-        }
-      }
-      // Car color shift
-      if (car && data.percent > 80) {
-        car.style.background = 'linear-gradient(90deg, #DC143C, #FF8000)';
-      } else if (car && data.percent > 60) {
-        car.style.background = 'linear-gradient(90deg, #FF8000, #FFD700)';
+      if (fill && data.percent > 85) {
+        fill.style.background = 'linear-gradient(90deg, #ff1744, #ff6d00)';
+      } else if (fill && data.percent > 65) {
+        fill.style.background = 'linear-gradient(90deg, #ff6d00, #00e5ff)';
       }
     };
-    updateStrip('strip-root', s.storage.root);
-    updateStrip('strip-home', s.storage.home);
-    updateStrip('strip-cave', s.storage.cave);
+    updateVault('vault-root', s.storage.root);
+    updateVault('vault-home', s.storage.home);
+    updateVault('vault-cave', s.storage.cave);
 
-    // Speed needles for disk I/O
+    // Signal traces for disk I/O
     if (s.diskIO) {
       const maxIO = 50000;
       const readEl = document.querySelector('#stat-disk-read');
       const writeEl = document.querySelector('#stat-disk-write');
       if (readEl) {
-        const needle = readEl.querySelector('.speed-needle');
+        const head = readEl.querySelector('.signal-head');
         const val = readEl.querySelector('.val');
-        if (needle) needle.style.width = `${Math.min(100, (s.diskIO.read / maxIO) * 100)}%`;
-        if (val) { val.textContent = `${s.diskIO.read} KiB/s`; val.className = 'val val-blue'; }
+        if (head) head.style.width = `${Math.min(100, (s.diskIO.read / maxIO) * 100)}%`;
+        if (val) { val.textContent = `${s.diskIO.read} KiB/s`; val.className = 'val val-cyan'; }
       }
       if (writeEl) {
-        const needle = writeEl.querySelector('.speed-needle');
+        const head = writeEl.querySelector('.signal-head');
         const val = writeEl.querySelector('.val');
-        if (needle) needle.style.width = `${Math.min(100, (s.diskIO.write / maxIO) * 100)}%`;
-        if (val) { val.textContent = `${s.diskIO.write} KiB/s`; val.className = 'val val-orange'; }
+        if (head) head.style.width = `${Math.min(100, (s.diskIO.write / maxIO) * 100)}%`;
+        if (val) { val.textContent = `${s.diskIO.write} KiB/s`; val.className = 'val val-green'; }
       }
     }
 
     // GPU
-    setRow(el.gpuRegistry, 'ECU FW', `${s.gpu.name} // FW:${s.gpu.driver}`);
-    setRow(el.gpuUsage, 'THROTTLE', `${s.gpu.usage}%`, 'val-blue');
-    setRow(el.gpuTemp, 'BRAKE DISC', `${s.gpu.temp}°C`, 'val-red');
-    setRow(el.gpuFan, 'TURBO', `${s.gpu.fan}%`);
-    if (el.vramText) el.vramText.textContent = `TYRE WEAR: ${s.gpu.vramUsed} / ${s.gpu.vramTotal} MiB`;
+    setRow(el.gpuRegistry, 'MODULE', `${s.gpu.name} // FW:${s.gpu.driver}`);
+    setRow(el.gpuUsage, 'COMPUTE', `${s.gpu.usage}%`, 'val-cyan');
+    setRow(el.gpuTemp, 'COOLANT', `${s.gpu.temp}°C`, 'val-orange');
+    setRow(el.gpuFan, 'ROTORS', `${s.gpu.fan}%`);
+    if (el.vramText) el.vramText.textContent = `TENSOR MEM: ${s.gpu.vramUsed} / ${s.gpu.vramTotal} MiB`;
 
     // Network
-    setRow(el.netIp, 'PIT RADIO', s.network.ip);
-    setRow(el.netType, 'LINK', s.network.type);
-    setRow(el.netDown, 'TOP SPD \u2193', `${s.network.down} KiB/s`, 'val-blue');
-    setRow(el.netUp, 'TOP SPD \u2191', `${s.network.up} KiB/s`, 'val-red');
+    setRow(el.netIp, 'NODE ID', s.network.ip);
+    setRow(el.netType, 'PROTOCOL', s.network.type);
+    setRow(el.netDown, 'RX RATE', `${s.network.down} KiB/s`, 'val-cyan');
+    setRow(el.netUp, 'TX RATE', `${s.network.up} KiB/s`, 'val-violet');
 
     // Docker
-    setRow(el.dockerActive, 'PIT LANE', `${s.docker.count} cars`, 'val-green');
+    setRow(el.dockerActive, 'MODULES', `${s.docker.count} active`, 'val-green');
 
     // Top bar
     if (el.met) el.met.textContent = uptimeToMET(s.system.uptime);
     if (el.netStatus) {
       el.netStatus.textContent = s.network.type;
-      el.netStatus.style.color = s.network.type === 'Disconnected' ? '#DC143C' : '#00AA55';
+      el.netStatus.style.color = s.network.type === 'Disconnected' ? '#ff1744' : '#00e676';
     }
   }
 
   updateWidgets(s) {
-    this.engineBlock.update(s.cpu.usage);
-    this.fuelTank.update({ ...s.memory, loadavg: s.system.loadavg });
-    this.tireWear.update(s.gpu.vramUsed, s.gpu.vramTotal, s.gpu.name);
-    this.telemetry.push(s.network.down, s.network.up);
-    this.pitLane.update(s.docker.names || []);
-    this.standings.update(s.cpu.top || []);
+    this.neuralGrid.update(s.cpu.usage);
+    this.dataRack.update({ ...s.memory, loadavg: s.system.loadavg });
+    this.tensorMatrix.update(s.gpu.vramUsed, s.gpu.vramTotal);
+    this.meshNetwork.push(s.network.down, s.network.up);
+    this.robotAssembly.update(s.docker.names || []);
+    this.taskScheduler.update(s.cpu.top || []);
   }
 }
 

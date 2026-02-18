@@ -15,166 +15,166 @@
   <div class="glitch-flash" id="glitch-flash"></div>
 
   <div id="overlay">
-    <!-- Top bar: pit wall console -->
+    <!-- Top bar: robot internal clock -->
     <div id="top-bar">
       <div id="top-left">
-        <span id="date-display">SESSION --</span>
+        <span id="date-display">TIMESTAMP: --</span>
       </div>
       <div id="top-center">
         <span id="time-display">--:--:--</span>
       </div>
       <div id="top-right">
-        <span class="top-label">STINT</span>
+        <span class="top-label">MISSION</span>
         <span id="met-display">T+00:00:00</span>
-        <span class="top-sep">&#9873;</span>
-        <span class="top-label">COMMS</span>
+        <span class="top-sep">&#9670;</span>
+        <span class="top-label">MESH</span>
         <span id="net-status">--</span>
       </div>
     </div>
 
-    <!-- Tachometer gauge row -->
+    <!-- Robotic sensor gauge row -->
     <div id="gauge-row">
-      <div class="tach-gauge">
-        <canvas id="tach-0" width="150" height="130"></canvas>
-        <div class="tach-val"><span class="tv-num" id="tv-0">--</span><span class="tv-unit">%</span></div>
-        <div class="tach-lbl">CPU</div>
+      <div class="sensor-gauge">
+        <canvas id="sensor-0" width="150" height="130"></canvas>
+        <div class="sensor-val"><span class="sv-num" id="sv-0">--</span><span class="sv-unit">%</span></div>
+        <div class="sensor-lbl">CPU</div>
       </div>
-      <div class="tach-gauge">
-        <canvas id="tach-1" width="150" height="130"></canvas>
-        <div class="tach-val"><span class="tv-num" id="tv-1">--</span><span class="tv-unit">%</span></div>
-        <div class="tach-lbl">RAM</div>
+      <div class="sensor-gauge">
+        <canvas id="sensor-1" width="150" height="130"></canvas>
+        <div class="sensor-val"><span class="sv-num" id="sv-1">--</span><span class="sv-unit">%</span></div>
+        <div class="sensor-lbl">RAM</div>
       </div>
-      <div class="tach-gauge">
-        <canvas id="tach-2" width="150" height="130"></canvas>
-        <div class="tach-val"><span class="tv-num" id="tv-2">--</span><span class="tv-unit">%</span></div>
-        <div class="tach-lbl">GPU</div>
+      <div class="sensor-gauge">
+        <canvas id="sensor-2" width="150" height="130"></canvas>
+        <div class="sensor-val"><span class="sv-num" id="sv-2">--</span><span class="sv-unit">%</span></div>
+        <div class="sensor-lbl">GPU</div>
       </div>
-      <div class="tach-gauge">
-        <canvas id="tach-3" width="150" height="130"></canvas>
-        <div class="tach-val"><span class="tv-num" id="tv-3">--</span><span class="tv-unit">&deg;C</span></div>
-        <div class="tach-lbl">CPU TMP</div>
+      <div class="sensor-gauge">
+        <canvas id="sensor-3" width="150" height="130"></canvas>
+        <div class="sensor-val"><span class="sv-num" id="sv-3">--</span><span class="sv-unit">&deg;C</span></div>
+        <div class="sensor-lbl">CPU TMP</div>
       </div>
-      <div class="tach-gauge">
-        <canvas id="tach-4" width="150" height="130"></canvas>
-        <div class="tach-val"><span class="tv-num" id="tv-4">--</span><span class="tv-unit">&deg;C</span></div>
-        <div class="tach-lbl">GPU TMP</div>
+      <div class="sensor-gauge">
+        <canvas id="sensor-4" width="150" height="130"></canvas>
+        <div class="sensor-val"><span class="sv-num" id="sv-4">--</span><span class="sv-unit">&deg;C</span></div>
+        <div class="sensor-lbl">GPU TMP</div>
       </div>
-      <div class="tach-gauge">
-        <canvas id="tach-5" width="150" height="130"></canvas>
-        <div class="tach-val"><span class="tv-num" id="tv-5">--</span><span class="tv-unit">W</span></div>
-        <div class="tach-lbl">CPU PWR</div>
+      <div class="sensor-gauge">
+        <canvas id="sensor-5" width="150" height="130"></canvas>
+        <div class="sensor-val"><span class="sv-num" id="sv-5">--</span><span class="sv-unit">W</span></div>
+        <div class="sensor-lbl">CPU PWR</div>
       </div>
-      <div class="tach-gauge">
-        <canvas id="tach-6" width="150" height="130"></canvas>
-        <div class="tach-val"><span class="tv-num" id="tv-6">--</span><span class="tv-unit">W</span></div>
-        <div class="tach-lbl">GPU PWR</div>
+      <div class="sensor-gauge">
+        <canvas id="sensor-6" width="150" height="130"></canvas>
+        <div class="sensor-val"><span class="sv-num" id="sv-6">--</span><span class="sv-unit">W</span></div>
+        <div class="sensor-lbl">GPU PWR</div>
       </div>
     </div>
 
-    <!-- Panel grid: 3x2 carbon fiber panels -->
+    <!-- Panel grid: 3x2 PCB module panels -->
     <div id="panel-grid">
       <!-- CPU Panel -->
-      <div class="panel carbon">
-        <div class="hex-bolt tl"></div><div class="hex-bolt tr"></div>
-        <div class="hex-bolt bl"></div><div class="hex-bolt br"></div>
-        <div class="panel-header"><span class="flag-icon">&#9873;</span> CPU</div>
+      <div class="panel pcb">
+        <div class="via-dot tl"></div><div class="via-dot tr"></div>
+        <div class="via-dot bl"></div><div class="via-dot br"></div>
+        <div class="panel-header"><span class="chip-icon">&#9632;</span> CPU</div>
         <div class="panel-body">
-          <canvas id="engine-block" width="380" height="100"></canvas>
-          <div class="stat-row" id="stat-cpu-model"><span class="lbl">CHASSIS</span><span class="val">--</span></div>
-          <div class="stat-row" id="stat-cpu-load"><span class="lbl">THROTTLE</span><span class="val">--%</span></div>
-          <div class="stat-row" id="stat-cpu-freq"><span class="lbl">RPM</span><span class="val">-- MHz</span></div>
-          <div class="stat-row" id="stat-cpu-temp"><span class="lbl">COOLANT</span><span class="val">--</span></div>
+          <canvas id="neural-grid" width="380" height="100"></canvas>
+          <div class="stat-row" id="stat-cpu-model"><span class="lbl">MODULE</span><span class="val">--</span></div>
+          <div class="stat-row" id="stat-cpu-load"><span class="lbl">LOAD</span><span class="val">--%</span></div>
+          <div class="stat-row" id="stat-cpu-freq"><span class="lbl">CLOCK</span><span class="val">-- GHz</span></div>
+          <div class="stat-row" id="stat-cpu-temp"><span class="lbl">THERMAL</span><span class="val">--</span></div>
         </div>
       </div>
 
       <!-- Memory Panel -->
-      <div class="panel carbon">
-        <div class="hex-bolt tl"></div><div class="hex-bolt tr"></div>
-        <div class="hex-bolt bl"></div><div class="hex-bolt br"></div>
-        <div class="panel-header"><span class="flag-icon">&#9873;</span> MEMORY</div>
+      <div class="panel pcb">
+        <div class="via-dot tl"></div><div class="via-dot tr"></div>
+        <div class="via-dot bl"></div><div class="via-dot br"></div>
+        <div class="panel-header"><span class="chip-icon">&#9632;</span> MEMORY</div>
         <div class="panel-body">
-          <canvas id="fuel-tank" width="380" height="110"></canvas>
-          <div class="stat-row" id="stat-ram"><span class="lbl">FUEL</span><span class="val">-- / --</span></div>
-          <div class="stat-row" id="stat-ram-pct"><span class="lbl">LEVEL</span><span class="val">--%</span></div>
-          <div class="stat-row" id="stat-ram-free"><span class="lbl">RESERVE</span><span class="val">--</span></div>
-          <div class="stat-row" id="stat-swap"><span class="lbl">AUX TANK</span><span class="val">-- / --</span></div>
-          <div class="stat-row" id="stat-loadavg"><span class="lbl">GEARS</span><span class="val">--</span></div>
+          <canvas id="data-rack" width="380" height="110"></canvas>
+          <div class="stat-row" id="stat-ram"><span class="lbl">DIMM</span><span class="val">-- / --</span></div>
+          <div class="stat-row" id="stat-ram-pct"><span class="lbl">ALLOC</span><span class="val">--%</span></div>
+          <div class="stat-row" id="stat-ram-free"><span class="lbl">FREE</span><span class="val">--</span></div>
+          <div class="stat-row" id="stat-swap"><span class="lbl">SWAP OVF</span><span class="val">-- / --</span></div>
+          <div class="stat-row" id="stat-loadavg"><span class="lbl">ACTUATORS</span><span class="val">--</span></div>
         </div>
       </div>
 
       <!-- Storage Panel -->
-      <div class="panel carbon">
-        <div class="hex-bolt tl"></div><div class="hex-bolt tr"></div>
-        <div class="hex-bolt bl"></div><div class="hex-bolt br"></div>
-        <div class="panel-header"><span class="flag-icon">&#9873;</span> STORAGE</div>
+      <div class="panel pcb">
+        <div class="via-dot tl"></div><div class="via-dot tr"></div>
+        <div class="via-dot bl"></div><div class="via-dot br"></div>
+        <div class="panel-header"><span class="chip-icon">&#9632;</span> STORAGE</div>
         <div class="panel-body">
-          <div class="drag-strip" id="strip-root">
-            <span class="strip-label">/</span>
-            <div class="strip-track"><div class="strip-car"></div><div class="strip-light"></div></div>
-            <span class="strip-text">--</span>
+          <div class="data-vault" id="vault-root">
+            <span class="vault-label">CORE SYS</span>
+            <div class="vault-tube"><div class="vault-fill"></div></div>
+            <span class="vault-text">--</span>
           </div>
-          <div class="drag-strip" id="strip-home">
-            <span class="strip-label">/home</span>
-            <div class="strip-track"><div class="strip-car"></div><div class="strip-light"></div></div>
-            <span class="strip-text">--</span>
+          <div class="data-vault" id="vault-home">
+            <span class="vault-label">OP DATA</span>
+            <div class="vault-tube"><div class="vault-fill"></div></div>
+            <span class="vault-text">--</span>
           </div>
-          <div class="drag-strip" id="strip-cave">
-            <span class="strip-label">/cave</span>
-            <div class="strip-track"><div class="strip-car"></div><div class="strip-light"></div></div>
-            <span class="strip-text">--</span>
+          <div class="data-vault" id="vault-cave">
+            <span class="vault-label">ARCHIVE</span>
+            <div class="vault-tube"><div class="vault-fill"></div></div>
+            <span class="vault-text">--</span>
           </div>
           <div class="stat-row io-row" id="stat-disk-read">
-            <span class="lbl">READ</span>
-            <div class="speed-trail read"><div class="speed-needle"></div></div>
+            <span class="lbl">READ BUS</span>
+            <div class="signal-trace read"><div class="signal-head"></div></div>
             <span class="val">-- KiB/s</span>
           </div>
           <div class="stat-row io-row" id="stat-disk-write">
-            <span class="lbl">WRITE</span>
-            <div class="speed-trail write"><div class="speed-needle"></div></div>
+            <span class="lbl">WRITE BUS</span>
+            <div class="signal-trace write"><div class="signal-head"></div></div>
             <span class="val">-- KiB/s</span>
           </div>
         </div>
       </div>
 
       <!-- GPU Panel -->
-      <div class="panel carbon">
-        <div class="hex-bolt tl"></div><div class="hex-bolt tr"></div>
-        <div class="hex-bolt bl"></div><div class="hex-bolt br"></div>
-        <div class="panel-header"><span class="flag-icon">&#9873;</span> GPU</div>
+      <div class="panel pcb">
+        <div class="via-dot tl"></div><div class="via-dot tr"></div>
+        <div class="via-dot bl"></div><div class="via-dot br"></div>
+        <div class="panel-header"><span class="chip-icon">&#9632;</span> GPU</div>
         <div class="panel-body">
-          <canvas id="tire-wear" width="380" height="100"></canvas>
-          <div class="stat-row registry-row" id="stat-gpu-registry"><span class="lbl">ECU FW</span><span class="val">--</span></div>
-          <div class="stat-row" id="stat-gpu-usage"><span class="lbl">THROTTLE</span><span class="val">--%</span></div>
-          <div class="stat-row" id="stat-gpu-temp"><span class="lbl">BRAKE DISC</span><span class="val">--</span></div>
-          <div class="stat-row" id="stat-gpu-fan"><span class="lbl">TURBO</span><span class="val">--%</span></div>
-          <div id="vram-text" class="vram-text">VRAM: -- / -- MiB</div>
+          <canvas id="tensor-matrix" width="380" height="100"></canvas>
+          <div class="stat-row registry-row" id="stat-gpu-registry"><span class="lbl">MODULE</span><span class="val">--</span></div>
+          <div class="stat-row" id="stat-gpu-usage"><span class="lbl">COMPUTE</span><span class="val">--%</span></div>
+          <div class="stat-row" id="stat-gpu-temp"><span class="lbl">COOLANT</span><span class="val">--</span></div>
+          <div class="stat-row" id="stat-gpu-fan"><span class="lbl">ROTORS</span><span class="val">--%</span></div>
+          <div id="vram-text" class="vram-text">TENSOR MEM: -- / -- MiB</div>
         </div>
       </div>
 
       <!-- Network Panel -->
-      <div class="panel carbon">
-        <div class="hex-bolt tl"></div><div class="hex-bolt tr"></div>
-        <div class="hex-bolt bl"></div><div class="hex-bolt br"></div>
-        <div class="panel-header"><span class="flag-icon">&#9873;</span> NETWORK</div>
+      <div class="panel pcb">
+        <div class="via-dot tl"></div><div class="via-dot tr"></div>
+        <div class="via-dot bl"></div><div class="via-dot br"></div>
+        <div class="panel-header"><span class="chip-icon">&#9632;</span> NETWORK</div>
         <div class="panel-body">
-          <div class="stat-row" id="stat-net-ip"><span class="lbl">PIT RADIO</span><span class="val">--</span></div>
-          <div class="stat-row" id="stat-net-type"><span class="lbl">LINK</span><span class="val">--</span></div>
-          <div class="stat-row" id="stat-net-down"><span class="lbl">TOP SPD &#8595;</span><span class="val">-- KiB/s</span></div>
-          <div class="stat-row" id="stat-net-up"><span class="lbl">TOP SPD &#8593;</span><span class="val">-- KiB/s</span></div>
-          <canvas id="telemetry" width="380" height="120"></canvas>
+          <div class="stat-row" id="stat-net-ip"><span class="lbl">NODE ID</span><span class="val">--</span></div>
+          <div class="stat-row" id="stat-net-type"><span class="lbl">PROTOCOL</span><span class="val">--</span></div>
+          <div class="stat-row" id="stat-net-down"><span class="lbl">RX RATE</span><span class="val">-- KiB/s</span></div>
+          <div class="stat-row" id="stat-net-up"><span class="lbl">TX RATE</span><span class="val">-- KiB/s</span></div>
+          <canvas id="mesh-network" width="380" height="120"></canvas>
         </div>
       </div>
 
       <!-- Docker Panel -->
-      <div class="panel carbon">
-        <div class="hex-bolt tl"></div><div class="hex-bolt tr"></div>
-        <div class="hex-bolt bl"></div><div class="hex-bolt br"></div>
-        <div class="panel-header"><span class="flag-icon">&#9873;</span> DOCKER</div>
+      <div class="panel pcb">
+        <div class="via-dot tl"></div><div class="via-dot tr"></div>
+        <div class="via-dot bl"></div><div class="via-dot br"></div>
+        <div class="panel-header"><span class="chip-icon">&#9632;</span> DOCKER</div>
         <div class="panel-body">
-          <div class="stat-row" id="stat-docker-active"><span class="lbl">PIT LANE</span><span class="val">--</span></div>
-          <div id="pit-lane" class="pit-lane"></div>
-          <div class="standings-label">RACE STANDINGS</div>
-          <div id="standings" class="standings"></div>
+          <div class="stat-row" id="stat-docker-active"><span class="lbl">MODULES</span><span class="val">--</span></div>
+          <div id="robot-assembly" class="robot-assembly"></div>
+          <div class="scheduler-label">TASK SCHEDULER</div>
+          <div id="task-scheduler" class="task-scheduler"></div>
         </div>
       </div>
     </div>
