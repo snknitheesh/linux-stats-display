@@ -1,24 +1,20 @@
-/* ─── Living Nature Design Tokens ─── */
+/* ─── Racing Garage Design Tokens ─── */
 :root {
-  --forest-deep: #0d1f0d;
-  --forest-mid: #1a2f1a;
-  --canopy-green: #2d5a2d;
-  --moss: #4a6741;
-  --leaf-bright: #6abf4b;
-  --amber: #D4A843;
-  --bark: #5c3d2e;
-  --bark-light: #8B6B4A;
-  --soil: #3E2723;
-  --parchment: rgba(30, 45, 25, 0.72);
-  --panel-border: rgba(106, 191, 75, 0.15);
-  --honey: #F0C040;
-  --water-blue: #4A90B8;
-  --water-teal: #3CB8A0;
-  --berry-red: #C04040;
-  --sunlight: #FFE4A0;
-  --label: #7A9070;
-  --text: #D4DEC8;
-  --green: #00DD66;
+  --matte-black: #0d0d0d;
+  --carbon: #1a1a1e;
+  --gunmetal: #2a2a2e;
+  --aluminum: #8a8a90;
+  --chrome: #c0c0c8;
+  --ferrari-red: #DC143C;
+  --mclaren-orange: #FF8000;
+  --racing-green: #00AA55;
+  --electric-blue: #0088FF;
+  --gold: #FFD700;
+  --panel-bg: rgba(13, 13, 16, 0.82);
+  --panel-border: rgba(140, 140, 150, 0.12);
+  --label: #6a6a72;
+  --text: #E0E0E8;
+  --white: #F0F0F5;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -26,7 +22,7 @@
 body {
   background: transparent;
   overflow: hidden;
-  font-family: 'DejaVu Sans Mono', 'JetBrains Mono', 'Fira Code', monospace;
+  font-family: 'Titillium Web', 'Share Tech Mono', 'DejaVu Sans Mono', 'JetBrains Mono', monospace;
   color: var(--text);
 }
 
@@ -47,9 +43,9 @@ body {
   background: repeating-linear-gradient(
     0deg,
     transparent 0px,
-    transparent 4px,
-    rgba(60, 100, 40, 0.006) 4px,
-    rgba(60, 100, 40, 0.006) 8px
+    transparent 3px,
+    rgba(200, 200, 210, 0.004) 3px,
+    rgba(200, 200, 210, 0.004) 6px
   );
 }
 
@@ -59,7 +55,7 @@ body {
   width: 100vw; height: 100vh;
   z-index: 4;
   pointer-events: none;
-  background: radial-gradient(ellipse at center, transparent 30%, rgba(8, 18, 8, 0.55) 100%);
+  background: radial-gradient(ellipse at center, transparent 30%, rgba(0, 0, 0, 0.5) 100%);
 }
 
 #overlay {
@@ -70,7 +66,7 @@ body {
   pointer-events: none;
 }
 
-/* ─── Nature Flash (instead of glitch) ─── */
+/* ─── Caution Flash ─── */
 .glitch-flash {
   position: fixed;
   top: 0; left: 0;
@@ -80,13 +76,14 @@ body {
   opacity: 0;
 }
 .glitch-flash.active {
-  animation: nature-flash-anim 0.2s ease-out forwards;
+  animation: caution-flash 0.15s steps(3) forwards;
 }
 
-@keyframes nature-flash-anim {
+@keyframes caution-flash {
   0%   { opacity: 0; }
-  40%  { opacity: 0.04; background: linear-gradient(180deg, rgba(106, 191, 75, 0.12) 0%, transparent 50%, rgba(212, 168, 67, 0.08) 100%); }
-  100% { opacity: 0; }
+  33%  { opacity: 0.03; background: linear-gradient(90deg, rgba(220, 20, 60, 0.1) 0%, transparent 40%, rgba(0, 136, 255, 0.06) 100%); transform: translateX(-2px); }
+  66%  { opacity: 0.04; background: linear-gradient(90deg, transparent 20%, rgba(255, 128, 0, 0.08) 50%, transparent 80%); transform: translateX(1px); }
+  100% { opacity: 0; transform: translateX(0); }
 }
 
 /* ─── Top Bar ─── */
@@ -98,8 +95,8 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 0 24px;
-  background: linear-gradient(180deg, rgba(45, 90, 45, 0.06) 0%, transparent 100%);
-  border-bottom: 1px solid rgba(106, 191, 75, 0.06);
+  background: linear-gradient(180deg, rgba(42, 42, 46, 0.06) 0%, transparent 100%);
+  border-bottom: 1px solid rgba(140, 140, 150, 0.06);
 }
 
 #top-left { flex: 1; }
@@ -115,44 +112,46 @@ body {
 
 #date-display {
   font-size: 11px;
-  color: var(--moss);
+  color: var(--aluminum);
   letter-spacing: 2px;
-  text-shadow: 0 0 6px rgba(74, 103, 65, 0.5);
+  text-shadow: 0 0 6px rgba(138, 138, 144, 0.3);
+  font-style: italic;
 }
 
 #time-display {
   font-size: 26px;
-  font-weight: 300;
-  color: var(--text);
+  font-weight: 700;
+  color: var(--white);
   letter-spacing: 4px;
-  text-shadow: 0 0 10px rgba(212, 222, 200, 0.15);
+  text-shadow: 0 0 10px rgba(240, 240, 245, 0.15);
 }
 
 .top-label {
   font-size: 9px;
   color: var(--label);
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
 }
 
 .top-sep {
-  color: rgba(106, 191, 75, 0.5);
+  color: rgba(220, 20, 60, 0.5);
   font-size: 10px;
 }
 
 #met-display {
   font-size: 11px;
-  color: var(--amber);
+  color: var(--gold);
   letter-spacing: 1px;
-  text-shadow: 0 0 6px rgba(212, 168, 67, 0.3);
+  text-shadow: 0 0 6px rgba(255, 215, 0, 0.3);
 }
 
 #net-status {
   font-size: 11px;
-  color: var(--green);
+  color: var(--racing-green);
   letter-spacing: 1px;
 }
 
-/* ─── Tree Canopy Gauge Row ─── */
+/* ─── Tachometer Gauge Row ─── */
 #gauge-row {
   position: absolute;
   top: 42px;
@@ -163,7 +162,7 @@ body {
   padding: 0 10px;
 }
 
-.tree-gauge {
+.tach-gauge {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -171,12 +170,12 @@ body {
   position: relative;
 }
 
-.tree-gauge canvas {
+.tach-gauge canvas {
   width: 130px;
   height: 115px;
 }
 
-.tree-val {
+.tach-val {
   position: absolute;
   top: 42%;
   left: 50%;
@@ -189,7 +188,7 @@ body {
 .tv-num {
   font-size: 22px;
   font-weight: bold;
-  color: var(--text);
+  color: var(--white);
   text-shadow: 0 0 8px currentColor, 0 0 4px rgba(0, 0, 0, 0.8);
   transition: color 0.6s ease, text-shadow 0.6s ease;
 }
@@ -201,16 +200,18 @@ body {
 
 .tv-unit {
   font-size: 10px;
-  color: rgba(212, 222, 200, 0.5);
+  color: rgba(224, 224, 232, 0.5);
   margin-left: 1px;
 }
 
-.tree-lbl {
+.tach-lbl {
   font-size: 10px;
   letter-spacing: 1.5px;
   margin-top: 0px;
   color: var(--label);
-  text-shadow: 0 0 4px rgba(74, 103, 65, 0.2);
+  text-transform: uppercase;
+  font-style: italic;
+  text-shadow: 0 0 4px rgba(138, 138, 144, 0.15);
 }
 
 /* ─── Panel Grid ─── */
@@ -225,64 +226,64 @@ body {
   gap: 10px;
 }
 
-/* ─── Wooden Panel Frame ─── */
-.panel.wooden {
-  background: var(--parchment);
+/* ─── Carbon Fiber Panel Frame ─── */
+.panel.carbon {
+  background: var(--panel-bg);
   border: 2px solid var(--panel-border);
-  border-radius: 8px;
+  border-radius: 6px;
   padding: 10px 14px;
   position: relative;
   overflow: hidden;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   box-shadow:
-    inset 0 1px 0 rgba(106, 191, 75, 0.04),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.25),
-    0 0 20px rgba(45, 90, 45, 0.06),
-    0 0 1px rgba(74, 103, 65, 0.2);
+    inset 0 1px 0 rgba(200, 200, 210, 0.03),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3),
+    0 0 20px rgba(0, 0, 0, 0.3),
+    0 0 1px rgba(140, 140, 150, 0.15);
 }
 
-.panel.wooden::before {
+.panel.carbon::before {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(106, 191, 75, 0.15), transparent);
+  background: linear-gradient(90deg, transparent, rgba(192, 192, 200, 0.12), transparent);
 }
 
-/* Moss corner lights */
-.moss-corner {
+/* Hex bolt accents */
+.hex-bolt {
   position: absolute;
   width: 6px;
   height: 6px;
-  border-radius: 50%;
-  background: var(--leaf-bright);
-  box-shadow: 0 0 6px var(--leaf-bright), 0 0 2px rgba(255, 255, 200, 0.4);
-  animation: moss-pulse 4s ease-in-out infinite;
+  border-radius: 1px;
+  background: var(--gunmetal);
+  border: 1px solid rgba(140, 140, 150, 0.2);
+  transform: rotate(45deg);
 }
-.moss-corner.tl { top: 6px; left: 6px; animation-delay: 0s; }
-.moss-corner.tr { top: 6px; right: 6px; animation-delay: 1s; }
-.moss-corner.bl { bottom: 6px; left: 6px; animation-delay: 2s; }
-.moss-corner.br { bottom: 6px; right: 6px; animation-delay: 3s; }
+.hex-bolt.tl { top: 5px; left: 5px; }
+.hex-bolt.tr { top: 5px; right: 5px; }
+.hex-bolt.bl { bottom: 5px; left: 5px; }
+.hex-bolt.br { bottom: 5px; right: 5px; }
 
-@keyframes moss-pulse {
-  0%, 100% { opacity: 0.15; }
-  50% { opacity: 0.6; }
-}
-
-/* Panel header - wooden label */
+/* Panel header - pit board style */
 .panel-header {
   font-size: 13px;
-  color: var(--leaf-bright);
-  letter-spacing: 2.5px;
+  color: var(--chrome);
+  letter-spacing: 3px;
   margin-bottom: 5px;
-  text-shadow: 0 0 8px rgba(106, 191, 75, 0.35);
+  text-shadow: 0 0 6px rgba(192, 192, 200, 0.25);
   padding-bottom: 4px;
-  border-bottom: 1px solid rgba(106, 191, 75, 0.08);
+  border-bottom: 1px solid rgba(140, 140, 150, 0.08);
+  font-weight: 700;
+  font-style: italic;
+  text-transform: uppercase;
 }
 
-.leaf-icon {
-  font-size: 11px;
+.flag-icon {
+  font-size: 10px;
+  color: var(--ferrari-red);
+  text-shadow: 0 0 4px var(--ferrari-red);
 }
 
 .panel-body {
@@ -291,20 +292,20 @@ body {
 }
 
 /* Panel canvases */
-#garden-grid,
-#lake-viz,
-#trunk-viz,
-#vine-graph {
+#engine-block,
+#fuel-tank,
+#tire-wear,
+#telemetry {
   width: 100%;
   display: block;
   margin-bottom: 4px;
   border-radius: 3px;
 }
 
-#garden-grid { height: 90px; }
-#lake-viz { height: 100px; }
-#trunk-viz { height: 90px; }
-#vine-graph { height: 110px; }
+#engine-block { height: 90px; }
+#fuel-tank { height: 100px; }
+#tire-wear { height: 90px; }
+#telemetry { height: 110px; }
 
 /* ─── Stat Rows ─── */
 .stat-row {
@@ -319,6 +320,8 @@ body {
   font-size: 11px;
   letter-spacing: 0.5px;
   flex-shrink: 0;
+  text-transform: uppercase;
+  font-style: italic;
 }
 
 .stat-row .val {
@@ -330,68 +333,80 @@ body {
   text-overflow: ellipsis;
 }
 
-.val-green { color: var(--leaf-bright) !important; text-shadow: 0 0 4px rgba(106, 191, 75, 0.4); }
-.val-teal { color: var(--water-teal) !important; text-shadow: 0 0 4px rgba(60, 184, 160, 0.3); }
-.val-amber { color: var(--amber) !important; text-shadow: 0 0 4px rgba(212, 168, 67, 0.3); }
-.val-berry { color: var(--berry-red) !important; text-shadow: 0 0 4px rgba(192, 64, 64, 0.4); }
-.val-moss { color: var(--moss) !important; text-shadow: 0 0 4px rgba(74, 103, 65, 0.4); }
+.val-blue { color: var(--electric-blue) !important; text-shadow: 0 0 4px rgba(0, 136, 255, 0.4); }
+.val-green { color: var(--racing-green) !important; text-shadow: 0 0 4px rgba(0, 170, 85, 0.3); }
+.val-gold { color: var(--gold) !important; text-shadow: 0 0 4px rgba(255, 215, 0, 0.3); }
+.val-orange { color: var(--mclaren-orange) !important; text-shadow: 0 0 4px rgba(255, 128, 0, 0.4); }
+.val-red { color: var(--ferrari-red) !important; text-shadow: 0 0 4px rgba(220, 20, 60, 0.4); }
 
-/* ─── Burrow Bars (Storage) ─── */
-.burrow-bar {
+/* ─── Drag Strip Bars (Storage) ─── */
+.drag-strip {
   display: flex;
   align-items: center;
   gap: 8px;
   margin: 4px 0;
 }
 
-.burrow-label {
+.strip-label {
   color: var(--label);
   font-size: 11px;
   min-width: 50px;
+  font-style: italic;
 }
 
-.burrow-capsule {
+.strip-track {
   flex: 1;
   height: 16px;
-  border-radius: 8px;
-  background: rgba(62, 39, 35, 0.3);
-  border: 1px solid rgba(106, 191, 75, 0.08);
+  border-radius: 3px;
+  background: rgba(42, 42, 46, 0.4);
+  border: 1px solid rgba(140, 140, 150, 0.08);
   overflow: hidden;
   position: relative;
 }
 
-.burrow-fill {
+.strip-car {
   height: 100%;
-  border-radius: 7px;
-  background: linear-gradient(90deg, var(--moss), var(--leaf-bright));
-  box-shadow: 0 0 8px rgba(106, 191, 75, 0.3);
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--racing-green), var(--electric-blue));
+  box-shadow: 0 0 8px rgba(0, 136, 255, 0.3);
   transition: width 0.6s ease;
   width: 0%;
 }
 
-.burrow-text {
+.strip-light {
+  position: absolute;
+  top: 2px;
+  left: 3px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--racing-green);
+  box-shadow: 0 0 4px var(--racing-green);
+}
+
+.strip-text {
   color: var(--text);
   font-size: 11px;
   min-width: 40px;
   text-align: right;
 }
 
-/* ─── Root Trails (I/O) ─── */
+/* ─── Speed Trails (I/O) ─── */
 .io-row {
   align-items: center;
 }
 
-.root-trail {
+.speed-trail {
   flex: 1;
   height: 6px;
   border-radius: 3px;
   position: relative;
   overflow: hidden;
-  background: rgba(74, 103, 65, 0.06);
+  background: rgba(42, 42, 46, 0.15);
   margin: 0 6px;
 }
 
-.root-head {
+.speed-needle {
   position: absolute;
   top: 0;
   height: 100%;
@@ -400,16 +415,16 @@ body {
   transition: width 0.6s ease;
 }
 
-.root-trail.read .root-head {
+.speed-trail.read .speed-needle {
   left: 0;
-  background: linear-gradient(90deg, transparent, var(--water-teal), var(--leaf-bright));
-  box-shadow: 2px 0 8px var(--water-teal);
+  background: linear-gradient(90deg, transparent, var(--electric-blue), #fff);
+  box-shadow: 2px 0 8px var(--electric-blue);
 }
 
-.root-trail.write .root-head {
+.speed-trail.write .speed-needle {
   right: 0; left: auto;
-  background: linear-gradient(270deg, transparent, var(--amber), var(--honey));
-  box-shadow: -2px 0 8px var(--amber);
+  background: linear-gradient(270deg, transparent, var(--mclaren-orange), #fff);
+  box-shadow: -2px 0 8px var(--mclaren-orange);
 }
 
 /* Registry row */
@@ -425,14 +440,15 @@ body {
   text-align: center;
   margin-top: 2px;
   letter-spacing: 0.5px;
+  font-style: italic;
 }
 
-/* ─── Honeycomb (Docker) ─── */
-.honeycomb {
+/* ─── Pit Lane (Docker) ─── */
+.pit-lane {
   margin-top: 4px;
 }
 
-.hive-cell {
+.pit-box {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -440,34 +456,39 @@ body {
   line-height: 1.8;
 }
 
-.hive-dot {
+.pit-light {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: var(--green);
-  box-shadow: 0 0 6px var(--green);
+  background: var(--racing-green);
+  box-shadow: 0 0 6px var(--racing-green);
   flex-shrink: 0;
 }
 
-.hive-name {
-  color: var(--amber);
+.pit-team {
+  color: var(--gold);
   letter-spacing: 0.5px;
+  font-style: italic;
+  text-transform: uppercase;
+  font-size: 12px;
 }
 
-/* ─── Ecosystem (Processes) ─── */
-.ecosystem-label {
+/* ─── Race Standings (Processes) ─── */
+.standings-label {
   font-size: 10px;
   color: var(--label);
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
   margin-top: 6px;
   margin-bottom: 2px;
+  text-transform: uppercase;
+  font-style: italic;
 }
 
-.ecosystem {
+.standings {
   margin-top: 2px;
 }
 
-.eco-entry {
+.standing-entry {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -476,28 +497,36 @@ body {
   gap: 8px;
 }
 
-.eco-name {
-  color: var(--leaf-bright);
+.standing-pos {
+  color: var(--chrome);
+  font-weight: 700;
+  font-size: 11px;
+  min-width: 20px;
 }
 
-.eco-bar {
+.standing-name {
+  color: var(--electric-blue);
+  font-style: italic;
+}
+
+.standing-bar {
   flex: 1;
   height: 4px;
   border-radius: 2px;
-  background: rgba(74, 103, 65, 0.1);
+  background: rgba(42, 42, 46, 0.15);
   overflow: hidden;
   margin: 0 4px;
 }
 
-.eco-bar-fill {
+.standing-bar-fill {
   height: 100%;
   border-radius: 2px;
-  background: var(--amber);
-  box-shadow: 0 0 4px var(--amber);
+  background: var(--mclaren-orange);
+  box-shadow: 0 0 4px var(--mclaren-orange);
   transition: width 0.4s ease;
 }
 
-.eco-pct {
+.standing-gap {
   color: var(--text);
   font-size: 12px;
   min-width: 40px;
@@ -510,9 +539,9 @@ body {
   bottom: 3px;
   left: 24px; right: 24px;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(106, 191, 75, 0.1), rgba(212, 168, 67, 0.06), rgba(74, 103, 65, 0.1), transparent);
+  background: linear-gradient(90deg, transparent, rgba(220, 20, 60, 0.08), rgba(192, 192, 200, 0.06), rgba(0, 136, 255, 0.08), transparent);
   background-size: 200% 100%;
-  animation: divider-flow 6s linear infinite;
+  animation: divider-flow 4s linear infinite;
 }
 
 @keyframes divider-flow {
