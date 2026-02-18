@@ -15,182 +15,151 @@
   <div class="glitch-flash" id="glitch-flash"></div>
 
   <div id="overlay">
-    <!-- HUD frame -->
+    <!-- Corner brackets -->
     <div class="corner-bracket tl"></div>
     <div class="corner-bracket tr"></div>
     <div class="corner-bracket bl"></div>
     <div class="corner-bracket br"></div>
-    <div class="hud-dot tl"></div>
-    <div class="hud-dot tr"></div>
-    <div class="hud-dot bl"></div>
-    <div class="hud-dot br"></div>
-    <div class="hud-line top"></div>
-    <div class="hud-line mid"></div>
+
+    <!-- Top bar: time + MET + net status -->
+    <div id="top-bar">
+      <div id="top-left">
+        <span id="date-display">Loading...</span>
+      </div>
+      <div id="top-center">
+        <span id="time-display">--:--:--</span>
+      </div>
+      <div id="top-right">
+        <span class="top-label">MET</span>
+        <span id="met-display">T+00:00:00</span>
+        <span class="top-sep">|</span>
+        <span class="top-label">NET</span>
+        <span id="net-status">--</span>
+      </div>
+    </div>
+
+    <!-- Hex gauge row -->
+    <div id="gauge-row">
+      <div class="hex-gauge" data-gauge="0">
+        <svg class="hex-svg" viewBox="0 0 100 100"></svg>
+        <div class="hex-val"><span class="hv-num" id="hv-0">--</span><span class="hv-unit">%</span></div>
+        <div class="hex-lbl">CPU</div>
+      </div>
+      <div class="hex-gauge" data-gauge="1">
+        <svg class="hex-svg" viewBox="0 0 100 100"></svg>
+        <div class="hex-val"><span class="hv-num" id="hv-1">--</span><span class="hv-unit">%</span></div>
+        <div class="hex-lbl">RAM</div>
+      </div>
+      <div class="hex-gauge" data-gauge="2">
+        <svg class="hex-svg" viewBox="0 0 100 100"></svg>
+        <div class="hex-val"><span class="hv-num" id="hv-2">--</span><span class="hv-unit">%</span></div>
+        <div class="hex-lbl">GPU</div>
+      </div>
+      <div class="hex-gauge" data-gauge="3">
+        <svg class="hex-svg" viewBox="0 0 100 100"></svg>
+        <div class="hex-val"><span class="hv-num" id="hv-3">--</span><span class="hv-unit">&deg;C</span></div>
+        <div class="hex-lbl">CPU TMP</div>
+      </div>
+      <div class="hex-gauge" data-gauge="4">
+        <svg class="hex-svg" viewBox="0 0 100 100"></svg>
+        <div class="hex-val"><span class="hv-num" id="hv-4">--</span><span class="hv-unit">&deg;C</span></div>
+        <div class="hex-lbl">GPU TMP</div>
+      </div>
+      <div class="hex-gauge" data-gauge="5">
+        <svg class="hex-svg" viewBox="0 0 100 100"></svg>
+        <div class="hex-val"><span class="hv-num" id="hv-5">--</span><span class="hv-unit">W</span></div>
+        <div class="hex-lbl">CPU PWR</div>
+      </div>
+      <div class="hex-gauge" data-gauge="6">
+        <svg class="hex-svg" viewBox="0 0 100 100"></svg>
+        <div class="hex-val"><span class="hv-num" id="hv-6">--</span><span class="hv-unit">W</span></div>
+        <div class="hex-lbl">GPU PWR</div>
+      </div>
+    </div>
+
+    <!-- Panel grid: 3 columns x 2 rows -->
+    <div id="panel-grid">
+      <!-- CPU Panel -->
+      <div class="panel" id="panel-cpu">
+        <div class="panel-header">CPU</div>
+        <div class="panel-body">
+          <div class="stat-row" id="stat-cpu-model"><span class="lbl">MODEL</span><span class="val">--</span></div>
+          <div class="stat-row" id="stat-cpu-load"><span class="lbl">LOAD</span><span class="val">--%</span></div>
+          <div class="stat-row" id="stat-cpu-freq"><span class="lbl">FREQ</span><span class="val">-- GHz</span></div>
+          <div class="stat-row" id="stat-cpu-temp"><span class="lbl">TEMP</span><span class="val">--</span></div>
+          <div class="core-grid-label">CORE UTILIZATION</div>
+          <div id="cpu-core-grid" class="core-grid"></div>
+        </div>
+      </div>
+
+      <!-- Memory Panel -->
+      <div class="panel" id="panel-memory">
+        <div class="panel-header">MEMORY</div>
+        <div class="panel-body">
+          <div class="stat-row" id="stat-ram"><span class="lbl">RAM</span><span class="val">-- / --</span></div>
+          <div class="stat-row" id="stat-ram-pct"><span class="lbl">USED</span><span class="val">--%</span></div>
+          <div class="stat-row" id="stat-ram-free"><span class="lbl">FREE</span><span class="val">--</span></div>
+          <div class="stat-row" id="stat-swap"><span class="lbl">SWAP</span><span class="val">-- / --</span></div>
+          <div class="stat-row" id="stat-loadavg"><span class="lbl">LOAD</span><span class="val">--</span></div>
+          <div class="stat-row" id="stat-procs"><span class="lbl">PROCS</span><span class="val">--</span></div>
+        </div>
+      </div>
+
+      <!-- Storage Panel -->
+      <div class="panel" id="panel-storage">
+        <div class="panel-header">STORAGE</div>
+        <div class="panel-body">
+          <div class="stat-row" id="stat-storage-root"><span class="lbl">/</span><span class="val">-- / --</span></div>
+          <div class="stat-row" id="stat-storage-home"><span class="lbl">/home</span><span class="val">-- / --</span></div>
+          <div class="stat-row" id="stat-storage-cave"><span class="lbl">/cave</span><span class="val">-- / --</span></div>
+          <div class="stat-row" id="stat-disk-read"><span class="lbl">READ</span><span class="val">-- KiB/s</span></div>
+          <div class="stat-row" id="stat-disk-write"><span class="lbl">WRITE</span><span class="val">-- KiB/s</span></div>
+        </div>
+      </div>
+
+      <!-- GPU Panel -->
+      <div class="panel" id="panel-gpu">
+        <div class="panel-header">GPU</div>
+        <div class="panel-body">
+          <div class="stat-row" id="stat-gpu-model"><span class="lbl">MODEL</span><span class="val">--</span></div>
+          <div class="stat-row" id="stat-gpu-driver"><span class="lbl">DRIVER</span><span class="val">--</span></div>
+          <div class="stat-row" id="stat-gpu-usage"><span class="lbl">USAGE</span><span class="val">--%</span></div>
+          <div class="stat-row" id="stat-gpu-temp"><span class="lbl">TEMP</span><span class="val">--</span></div>
+          <div class="stat-row" id="stat-gpu-fan"><span class="lbl">FAN</span><span class="val">--%</span></div>
+          <div class="vram-label">VRAM</div>
+          <div id="vram-fuel-bar" class="fuel-bar"></div>
+          <div id="vram-text" class="fuel-text">-- / -- MiB</div>
+          <div class="thermal-label">THERMAL</div>
+          <div id="gpu-thermal-strip" class="thermal-strip"><div class="thermal-fill"></div></div>
+        </div>
+      </div>
+
+      <!-- Network Panel -->
+      <div class="panel" id="panel-network">
+        <div class="panel-header">NETWORK</div>
+        <div class="panel-body">
+          <div class="stat-row" id="stat-net-ip"><span class="lbl">IP</span><span class="val">--</span></div>
+          <div class="stat-row" id="stat-net-type"><span class="lbl">TYPE</span><span class="val">--</span></div>
+          <div class="stat-row" id="stat-net-down"><span class="lbl">DOWN</span><span class="val">-- KiB/s</span></div>
+          <div class="stat-row" id="stat-net-up"><span class="lbl">UP</span><span class="val">-- KiB/s</span></div>
+          <canvas id="net-waveform" width="340" height="60"></canvas>
+        </div>
+      </div>
+
+      <!-- Docker Panel -->
+      <div class="panel" id="panel-docker">
+        <div class="panel-header">DOCKER</div>
+        <div class="panel-body">
+          <div class="stat-row" id="stat-docker-active"><span class="lbl">ACTIVE</span><span class="val">--</span></div>
+          <div id="docker-manifest" class="docker-manifest"></div>
+          <div class="process-feed-label">TOP PROCESSES</div>
+          <div id="process-feed" class="process-feed"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom divider -->
     <div class="divider"></div>
-
-    <!-- Time -->
-    <div id="time-section">
-      <div id="date-display">Loading...</div>
-      <div id="time-display">--:--:--</div>
-    </div>
-
-    <!-- SVG Ring Gauges -->
-    <div id="ring-row">
-      <div class="ring-cell" style="--ring-color: #00ff88">
-        <div class="ring-wrap">
-          <svg class="ring-svg" viewBox="0 0 80 80">
-            <circle class="ring-deco-outer" cx="40" cy="40" r="37">
-              <animateTransform attributeName="transform" type="rotate" from="0 40 40" to="360 40 40" dur="25s" repeatCount="indefinite"/>
-            </circle>
-            <circle class="ring-bg" cx="40" cy="40" r="30" />
-            <circle class="ring-fill" cx="40" cy="40" r="30" data-ring="0" />
-            <circle class="ring-deco-inner" cx="40" cy="40" r="23">
-              <animateTransform attributeName="transform" type="rotate" from="0 40 40" to="-360 40 40" dur="18s" repeatCount="indefinite"/>
-            </circle>
-          </svg>
-          <div class="ring-val"><span class="rv-num" id="rv-0">--</span><span class="rv-unit">%</span></div>
-        </div>
-        <div class="ring-lbl">CPU</div>
-      </div>
-      <div class="ring-cell" style="--ring-color: #00ff88">
-        <div class="ring-wrap">
-          <svg class="ring-svg" viewBox="0 0 80 80">
-            <circle class="ring-deco-outer" cx="40" cy="40" r="37">
-              <animateTransform attributeName="transform" type="rotate" from="0 40 40" to="360 40 40" dur="22s" repeatCount="indefinite"/>
-            </circle>
-            <circle class="ring-bg" cx="40" cy="40" r="30" />
-            <circle class="ring-fill" cx="40" cy="40" r="30" data-ring="1" />
-            <circle class="ring-deco-inner" cx="40" cy="40" r="23">
-              <animateTransform attributeName="transform" type="rotate" from="0 40 40" to="-360 40 40" dur="15s" repeatCount="indefinite"/>
-            </circle>
-          </svg>
-          <div class="ring-val"><span class="rv-num" id="rv-1">--</span><span class="rv-unit">%</span></div>
-        </div>
-        <div class="ring-lbl">RAM</div>
-      </div>
-      <div class="ring-cell" style="--ring-color: #00ff88">
-        <div class="ring-wrap">
-          <svg class="ring-svg" viewBox="0 0 80 80">
-            <circle class="ring-deco-outer" cx="40" cy="40" r="37">
-              <animateTransform attributeName="transform" type="rotate" from="0 40 40" to="360 40 40" dur="28s" repeatCount="indefinite"/>
-            </circle>
-            <circle class="ring-bg" cx="40" cy="40" r="30" />
-            <circle class="ring-fill" cx="40" cy="40" r="30" data-ring="2" />
-            <circle class="ring-deco-inner" cx="40" cy="40" r="23">
-              <animateTransform attributeName="transform" type="rotate" from="0 40 40" to="-360 40 40" dur="20s" repeatCount="indefinite"/>
-            </circle>
-          </svg>
-          <div class="ring-val"><span class="rv-num" id="rv-2">--</span><span class="rv-unit">%</span></div>
-        </div>
-        <div class="ring-lbl">GPU</div>
-      </div>
-      <div class="ring-cell" style="--ring-color: #00ff88">
-        <div class="ring-wrap">
-          <svg class="ring-svg" viewBox="0 0 80 80">
-            <circle class="ring-deco-outer" cx="40" cy="40" r="37">
-              <animateTransform attributeName="transform" type="rotate" from="0 40 40" to="360 40 40" dur="30s" repeatCount="indefinite"/>
-            </circle>
-            <circle class="ring-bg" cx="40" cy="40" r="30" />
-            <circle class="ring-fill" cx="40" cy="40" r="30" data-ring="3" />
-            <circle class="ring-deco-inner" cx="40" cy="40" r="23">
-              <animateTransform attributeName="transform" type="rotate" from="0 40 40" to="-360 40 40" dur="22s" repeatCount="indefinite"/>
-            </circle>
-          </svg>
-          <div class="ring-val"><span class="rv-num" id="rv-3">--</span><span class="rv-unit">&deg;C</span></div>
-        </div>
-        <div class="ring-lbl">CPU TMP</div>
-      </div>
-      <div class="ring-cell" style="--ring-color: #00ff88">
-        <div class="ring-wrap">
-          <svg class="ring-svg" viewBox="0 0 80 80">
-            <circle class="ring-deco-outer" cx="40" cy="40" r="37">
-              <animateTransform attributeName="transform" type="rotate" from="0 40 40" to="360 40 40" dur="26s" repeatCount="indefinite"/>
-            </circle>
-            <circle class="ring-bg" cx="40" cy="40" r="30" />
-            <circle class="ring-fill" cx="40" cy="40" r="30" data-ring="4" />
-            <circle class="ring-deco-inner" cx="40" cy="40" r="23">
-              <animateTransform attributeName="transform" type="rotate" from="0 40 40" to="-360 40 40" dur="17s" repeatCount="indefinite"/>
-            </circle>
-          </svg>
-          <div class="ring-val"><span class="rv-num" id="rv-4">--</span><span class="rv-unit">&deg;C</span></div>
-        </div>
-        <div class="ring-lbl">GPU TMP</div>
-      </div>
-      <div class="ring-cell" style="--ring-color: #00ff88">
-        <div class="ring-wrap">
-          <svg class="ring-svg" viewBox="0 0 80 80">
-            <circle class="ring-deco-outer" cx="40" cy="40" r="37">
-              <animateTransform attributeName="transform" type="rotate" from="0 40 40" to="360 40 40" dur="24s" repeatCount="indefinite"/>
-            </circle>
-            <circle class="ring-bg" cx="40" cy="40" r="30" />
-            <circle class="ring-fill" cx="40" cy="40" r="30" data-ring="5" />
-            <circle class="ring-deco-inner" cx="40" cy="40" r="23">
-              <animateTransform attributeName="transform" type="rotate" from="0 40 40" to="-360 40 40" dur="19s" repeatCount="indefinite"/>
-            </circle>
-          </svg>
-          <div class="ring-val"><span class="rv-num" id="rv-5">--</span><span class="rv-unit">W</span></div>
-        </div>
-        <div class="ring-lbl">CPU PWR</div>
-      </div>
-      <div class="ring-cell" style="--ring-color: #00ff88">
-        <div class="ring-wrap">
-          <svg class="ring-svg" viewBox="0 0 80 80">
-            <circle class="ring-deco-outer" cx="40" cy="40" r="37">
-              <animateTransform attributeName="transform" type="rotate" from="0 40 40" to="360 40 40" dur="27s" repeatCount="indefinite"/>
-            </circle>
-            <circle class="ring-bg" cx="40" cy="40" r="30" />
-            <circle class="ring-fill" cx="40" cy="40" r="30" data-ring="6" />
-            <circle class="ring-deco-inner" cx="40" cy="40" r="23">
-              <animateTransform attributeName="transform" type="rotate" from="0 40 40" to="-360 40 40" dur="21s" repeatCount="indefinite"/>
-            </circle>
-          </svg>
-          <div class="ring-val"><span class="rv-num" id="rv-6">--</span><span class="rv-unit">W</span></div>
-        </div>
-        <div class="ring-lbl">GPU PWR</div>
-      </div>
-    </div>
-
-    <!-- Stats Text -->
-    <div id="stats-container">
-      <div class="stats-column left">
-        <div class="section-header">SYSTEM</div>
-        <div class="stat-line" id="stat-uptime"><span class="label">UPTIME</span><span class="val-white">--</span></div>
-        <div class="section-header">CPU</div>
-        <div class="stat-line" id="stat-cpu-model"><span class="label">MODEL</span><span class="val-white">--</span></div>
-        <div class="stat-line" id="stat-cpu-load"><span class="label">LOAD</span><span class="val-green">--%</span></div>
-        <div class="stat-line" id="stat-cpu-temp"><span class="label">TEMP</span><span class="val-pink">--</span></div>
-        <div class="stat-line" id="stat-cpu-cores"><span class="label">CORES</span><span class="val-white">--</span></div>
-        <div class="stat-line"><span class="label">TOP:</span><span></span></div>
-        <div class="stat-line" id="stat-top-procs"></div>
-        <div class="section-header">MEMORY</div>
-        <div class="stat-line" id="stat-ram"><span class="label">RAM</span><span class="val-white">-- / --</span></div>
-        <div class="stat-line" id="stat-ram-free"><span class="label">FREE</span><span class="val-green">--</span></div>
-        <div class="stat-line" id="stat-swap"><span class="label">SWAP</span><span class="val-white">-- / --</span></div>
-        <div class="section-header">STORAGE</div>
-        <div class="stat-line" id="stat-storage-root"><span class="label">/</span><span class="val-white">-- / --</span></div>
-        <div class="stat-line" id="stat-storage-home"><span class="label">/home</span><span class="val-white">-- / --</span></div>
-        <div class="stat-line" id="stat-storage-cave"><span class="label">/cave</span><span class="val-white">-- / --</span></div>
-      </div>
-      <div class="stats-column right">
-        <div class="section-header">GPU</div>
-        <div class="stat-line" id="stat-gpu-model"><span class="label">MODEL</span><span class="val-white">--</span></div>
-        <div class="stat-line" id="stat-gpu-driver"><span class="label">DRIVER</span><span class="val-white">--</span></div>
-        <div class="stat-line" id="stat-gpu-usage"><span class="label">USAGE</span><span class="val-green">--%</span></div>
-        <div class="stat-line" id="stat-gpu-temp"><span class="label">TEMP</span><span class="val-pink">--°C</span></div>
-        <div class="stat-line" id="stat-gpu-vram"><span class="label">VRAM</span><span class="val-white">-- / -- MiB</span></div>
-        <div class="stat-line" id="stat-gpu-memclk"><span class="label">MEMCLK</span><span class="val-white">-- MHz</span></div>
-        <div class="stat-line" id="stat-gpu-fan"><span class="label">FAN</span><span class="val-white">--%</span></div>
-        <div class="stat-line" id="stat-gpu-power"><span class="label">POWER</span><span class="val-orange">-- W</span></div>
-        <div class="section-header">NETWORK</div>
-        <div class="stat-line" id="stat-net-ip"><span class="label">IP</span><span class="val-white">--</span></div>
-        <div class="stat-line" id="stat-net-type"><span class="label">TYPE</span><span class="val-white">--</span></div>
-        <div class="stat-line" id="stat-net-down"><span class="label">DOWN</span><span class="val-green">-- KiB/s</span></div>
-        <div class="stat-line" id="stat-net-up"><span class="label">UP</span><span class="val-magenta">-- KiB/s</span></div>
-        <div class="section-header">DOCKER</div>
-        <div class="stat-line" id="stat-docker-active"><span class="label">ACTIVE</span><span><span class="val-green">--</span> <span class="label">containers</span></span></div>
-        <div class="stat-line" id="stat-docker-names"></div>
-      </div>
-    </div>
   </div>
 
   <script type="module" src="/src/app.js"></script>
