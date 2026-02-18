@@ -656,7 +656,7 @@ class HoloStatsApp {
       if (bytes > 1e12) return (bytes / 1e12).toFixed(1) + ' TiB';
       if (bytes > 1e9) return (bytes / 1e9).toFixed(1) + ' GiB';
       if (bytes > 1e6) return (bytes / 1e6).toFixed(0) + ' MiB';
-      return (bytes / 1024).toFixed(0) + ' KiB';
+      return (bytes / 1e6).toFixed(2) + ' MiB';
     };
 
     const setRow = (elem, label, val, cls) => {
@@ -683,8 +683,8 @@ class HoloStatsApp {
     setRow(el.storageHome, '/home', `${fmt(s.storage.home.used)} / ${fmt(s.storage.home.total)}  ${s.storage.home.percent}%`);
     setRow(el.storageCave, '/cave', `${fmt(s.storage.cave.used)} / ${fmt(s.storage.cave.total)}  ${s.storage.cave.percent}%`);
     if (s.diskIO) {
-      setRow(el.diskRead, 'READ', `${s.diskIO.read} KiB/s`, 'val-green');
-      setRow(el.diskWrite, 'WRITE', `${s.diskIO.write} KiB/s`, 'val-magenta');
+      setRow(el.diskRead, 'READ', `${(s.diskIO.read / 1024).toFixed(2)} MiB/s`, 'val-green');
+      setRow(el.diskWrite, 'WRITE', `${(s.diskIO.write / 1024).toFixed(2)} MiB/s`, 'val-magenta');
     }
 
     // GPU Panel
@@ -698,8 +698,8 @@ class HoloStatsApp {
     // Network Panel
     setRow(el.netIp, 'IP', s.network.ip);
     setRow(el.netType, 'TYPE', s.network.type);
-    setRow(el.netDown, 'DOWN', `${s.network.down} KiB/s`, 'val-green');
-    setRow(el.netUp, 'UP', `${s.network.up} KiB/s`, 'val-magenta');
+    setRow(el.netDown, 'DOWN', `${(s.network.down / 1024).toFixed(2)} MiB/s`, 'val-green');
+    setRow(el.netUp, 'UP', `${(s.network.up / 1024).toFixed(2)} MiB/s`, 'val-magenta');
 
     // Docker Panel
     setRow(el.dockerActive, 'ACTIVE', `${s.docker.count} containers`, 'val-green');
