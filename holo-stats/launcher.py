@@ -31,7 +31,8 @@ class StatsCollector:
         self.prev_net_tx = 0
         self.prev_disk_read = 0
         self.prev_disk_write = 0
-        self.prev_timestamp = 0
+        self.prev_net_timestamp = 0
+        self.prev_disk_timestamp = 0
         self.prev_rapl_energy = 0
         self.prev_rapl_time = 0
         self.cpu_power = 0
@@ -123,14 +124,14 @@ class StatsCollector:
             rx = int(self._read_file(f'/sys/class/net/{iface}/statistics/rx_bytes'))
             tx = int(self._read_file(f'/sys/class/net/{iface}/statistics/tx_bytes'))
             now = time.time()
-            dt = now - self.prev_timestamp if self.prev_timestamp > 0 else 1
+            dt = now - self.prev_net_timestamp if self.prev_net_timestamp > 0 else 1
 
             down = (rx - self.prev_net_rx) / dt / 1024 if self.prev_net_rx > 0 else 0
             up = (tx - self.prev_net_tx) / dt / 1024 if self.prev_net_tx > 0 else 0
 
             self.prev_net_rx = rx
             self.prev_net_tx = tx
-            self.prev_timestamp = now
+            self.prev_net_timestamp = now
 
             return max(0, round(down, 1)), max(0, round(up, 1))
         except Exception:
@@ -151,11 +152,12 @@ class StatsCollector:
                         total_write += int(parts[9]) * 512
 
             now = time.time()
-            dt = now - self.prev_timestamp if self.prev_timestamp > 0 else 1
+            dt = now - self.prev_disk_timestamp if self.prev_disk_timestamp > 0 else 1
             read_speed = (total_read - self.prev_disk_read) / dt / 1024 if self.prev_disk_read > 0 else 0
             write_speed = (total_write - self.prev_disk_write) / dt / 1024 if self.prev_disk_write > 0 else 0
             self.prev_disk_read = total_read
             self.prev_disk_write = total_write
+            self.prev_disk_timestamp = now
             return max(0, round(read_speed, 1)), max(0, round(write_speed, 1))
         except Exception:
             return 0, 0
