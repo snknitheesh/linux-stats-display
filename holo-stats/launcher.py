@@ -277,6 +277,7 @@ class StatsCollector:
                 'root': self._parse_df('/'),
                 'home': self._parse_df('/home'),
                 'cave': self._parse_df('/mnt/cave'),
+                'lake': self._parse_df('/lake'),
             },
             'network': {
                 'ip': net_ip or 'N/A',

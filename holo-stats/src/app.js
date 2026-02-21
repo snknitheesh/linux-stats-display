@@ -568,6 +568,7 @@ class HoloStatsApp {
       storageRoot: document.getElementById('stat-storage-root'),
       storageHome: document.getElementById('stat-storage-home'),
       storageCave: document.getElementById('stat-storage-cave'),
+      storageLake: document.getElementById('stat-storage-lake'),
       diskRead: document.getElementById('stat-disk-read'),
       diskWrite: document.getElementById('stat-disk-write'),
       gpuModel: document.getElementById('stat-gpu-model'),
@@ -682,6 +683,7 @@ class HoloStatsApp {
     setRow(el.storageRoot, '/', `${fmt(s.storage.root.used)} / ${fmt(s.storage.root.total)}  ${s.storage.root.percent}%`);
     setRow(el.storageHome, '/home', `${fmt(s.storage.home.used)} / ${fmt(s.storage.home.total)}  ${s.storage.home.percent}%`);
     setRow(el.storageCave, '/cave', `${fmt(s.storage.cave.used)} / ${fmt(s.storage.cave.total)}  ${s.storage.cave.percent}%`);
+    setRow(el.storageLake, '/lake', `${fmt(s.storage.lake.used)} / ${fmt(s.storage.lake.total)}  ${s.storage.lake.percent}%`);
     if (s.diskIO) {
       setRow(el.diskRead, 'READ', `${(s.diskIO.read / 1024).toFixed(2)} MiB/s`, 'val-green');
       setRow(el.diskWrite, 'WRITE', `${(s.diskIO.write / 1024).toFixed(2)} MiB/s`, 'val-magenta');

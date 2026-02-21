@@ -114,7 +114,7 @@ async function collectStats() {
   const [
     cpuModel, cpuTemp, cpuFreq, cpuCores,
     gpuName, gpuDriver, gpuUsage, gpuTemp, gpuVramUsed, gpuVramTotal, gpuMemClk, gpuFan, gpuPower,
-    swapInfo, dfRoot, dfHome, dfCave,
+    swapInfo, dfRoot, dfHome, dfCave, dfLake,
     topProcs, dockerCount, dockerNames,
     loadavg, uptime, processes
   ] = await Promise.all([
@@ -135,6 +135,7 @@ async function collectStats() {
     execAsync("df -B1 / | tail -1"),
     execAsync("df -B1 /home | tail -1"),
     execAsync("df -B1 /mnt/cave | tail -1"),
+    execAsync("df -B1 /lake | tail -1"),
     execAsync("ps -eo comm,%cpu --sort=-%cpu --no-headers | awk '!/conky|electron|holo/{if(++n<=3)print $1,$2}'"),
     execAsync("docker ps -q 2>/dev/null | wc -l"),
     execAsync("docker ps --format '{{.Names}}' 2>/dev/null | head -2"),
@@ -203,6 +204,7 @@ async function collectStats() {
       root: parseDf(dfRoot),
       home: parseDf(dfHome),
       cave: parseDf(dfCave),
+      lake: parseDf(dfLake),
     },
     network: {
       ip,
