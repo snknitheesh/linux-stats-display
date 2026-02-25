@@ -315,7 +315,7 @@ class HoloStatsWindow:
         self.window.set_skip_taskbar_hint(True)
         self.window.set_skip_pager_hint(True)
         self.window.set_keep_below(True)
-        self.window.set_type_hint(Gdk.WindowTypeHint.DESKTOP)
+        self.window.set_type_hint(Gdk.WindowTypeHint.DOCK)
         self.window.set_app_paintable(True)
 
         # Enable RGBA visual for transparency
@@ -384,11 +384,12 @@ class HoloStatsWindow:
         return False
 
     def _on_realize(self, widget):
-        # Make window click-through (pass input to windows below)
+        # Set full input region so the window receives mouse events
         import cairo
         gdk_window = widget.get_window()
         if gdk_window:
-            region = cairo.Region(cairo.RectangleInt(0, 0, 0, 0))
+            alloc = widget.get_allocation()
+            region = cairo.Region(cairo.RectangleInt(0, 0, alloc.width, alloc.height))
             gdk_window.input_shape_combine_region(region, 0, 0)
 
     def _on_load_changed(self, webview, event):

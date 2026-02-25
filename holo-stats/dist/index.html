@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>HoloStats</title>
-  <script type="module" crossorigin src="./assets/index-Dh9YT65d.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-Mn3DwnXP.css">
+  <script type="module" crossorigin src="./assets/index-lY8DkuAR.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-BnPqLw03.css">
 </head>
 <body>
   <div id="canvas-container"></div>
@@ -39,128 +39,187 @@
       </div>
     </div>
 
-    <!-- Hex gauge row -->
-    <div id="gauge-row">
-      <div class="hex-gauge" data-gauge="0">
-        <svg class="hex-svg" viewBox="0 0 100 100"></svg>
-        <div class="hex-val"><span class="hv-num" id="hv-0">--</span><span class="hv-unit">%</span></div>
-        <div class="hex-lbl">CPU</div>
-      </div>
-      <div class="hex-gauge" data-gauge="1">
-        <svg class="hex-svg" viewBox="0 0 100 100"></svg>
-        <div class="hex-val"><span class="hv-num" id="hv-1">--</span><span class="hv-unit">%</span></div>
-        <div class="hex-lbl">RAM</div>
-      </div>
-      <div class="hex-gauge" data-gauge="2">
-        <svg class="hex-svg" viewBox="0 0 100 100"></svg>
-        <div class="hex-val"><span class="hv-num" id="hv-2">--</span><span class="hv-unit">%</span></div>
-        <div class="hex-lbl">GPU</div>
-      </div>
-      <div class="hex-gauge" data-gauge="3">
-        <svg class="hex-svg" viewBox="0 0 100 100"></svg>
-        <div class="hex-val"><span class="hv-num" id="hv-3">--</span><span class="hv-unit">&deg;C</span></div>
-        <div class="hex-lbl">CPU TMP</div>
-      </div>
-      <div class="hex-gauge" data-gauge="4">
-        <svg class="hex-svg" viewBox="0 0 100 100"></svg>
-        <div class="hex-val"><span class="hv-num" id="hv-4">--</span><span class="hv-unit">&deg;C</span></div>
-        <div class="hex-lbl">GPU TMP</div>
-      </div>
-      <div class="hex-gauge" data-gauge="5">
-        <svg class="hex-svg" viewBox="0 0 100 100"></svg>
-        <div class="hex-val"><span class="hv-num" id="hv-5">--</span><span class="hv-unit">W</span></div>
-        <div class="hex-lbl">CPU PWR</div>
-      </div>
-      <div class="hex-gauge" data-gauge="6">
-        <svg class="hex-svg" viewBox="0 0 100 100"></svg>
-        <div class="hex-val"><span class="hv-num" id="hv-6">--</span><span class="hv-unit">W</span></div>
-        <div class="hex-lbl">GPU PWR</div>
+    <!-- Page carousel -->
+    <div id="page-carousel">
+      <div id="page-track" data-active="0">
+
+        <!-- ═══ Page 1: Overview ═══ -->
+        <div class="page" id="page-overview">
+          <!-- Hex gauge row -->
+          <div id="gauge-row">
+            <div class="hex-gauge" data-gauge="0">
+              <svg class="hex-svg" viewBox="0 0 120 120"></svg>
+              <div class="hex-val"><span class="hv-num" id="hv-0">--</span><span class="hv-unit">%</span></div>
+              <div class="hex-lbl">CPU</div>
+            </div>
+            <div class="hex-gauge" data-gauge="1">
+              <svg class="hex-svg" viewBox="0 0 120 120"></svg>
+              <div class="hex-val"><span class="hv-num" id="hv-1">--</span><span class="hv-unit">%</span></div>
+              <div class="hex-lbl">RAM</div>
+            </div>
+            <div class="hex-gauge" data-gauge="2">
+              <svg class="hex-svg" viewBox="0 0 120 120"></svg>
+              <div class="hex-val"><span class="hv-num" id="hv-2">--</span><span class="hv-unit">%</span></div>
+              <div class="hex-lbl">GPU</div>
+            </div>
+            <div class="hex-gauge" data-gauge="3">
+              <svg class="hex-svg" viewBox="0 0 120 120"></svg>
+              <div class="hex-val"><span class="hv-num" id="hv-3">--</span><span class="hv-unit">&deg;C</span></div>
+              <div class="hex-lbl">CPU TMP</div>
+            </div>
+            <div class="hex-gauge" data-gauge="4">
+              <svg class="hex-svg" viewBox="0 0 120 120"></svg>
+              <div class="hex-val"><span class="hv-num" id="hv-4">--</span><span class="hv-unit">&deg;C</span></div>
+              <div class="hex-lbl">GPU TMP</div>
+            </div>
+            <div class="hex-gauge" data-gauge="5">
+              <svg class="hex-svg" viewBox="0 0 120 120"></svg>
+              <div class="hex-val"><span class="hv-num" id="hv-5">--</span><span class="hv-unit">W</span></div>
+              <div class="hex-lbl">GPU PWR</div>
+            </div>
+          </div>
+
+          <!-- Topic cards: left corner -->
+          <div id="topic-left">
+            <div class="topic-card" data-target="1"><span class="topic-icon">CPU</span></div>
+            <div class="topic-card" data-target="2"><span class="topic-icon">MEMORY</span></div>
+            <div class="topic-card" data-target="2"><span class="topic-icon">STORAGE</span></div>
+          </div>
+          <!-- Topic cards: right corner -->
+          <div id="topic-right">
+            <div class="topic-card" data-target="1"><span class="topic-icon">GPU</span></div>
+            <div class="topic-card" data-target="2"><span class="topic-icon">NETWORK</span></div>
+            <div class="topic-card" data-target="2"><span class="topic-icon">PROCESSES</span></div>
+          </div>
+        </div>
+
+        <!-- ═══ Page 2: Compute ═══ -->
+        <div class="page" id="page-compute">
+          <div id="compute-grid">
+            <!-- CPU Detail Panel -->
+            <div class="panel panel-detail" id="panel-cpu-detail" data-panel="cpu-detail">
+              <div class="panel-header">CPU DETAIL</div>
+              <div class="panel-body">
+                <div class="stat-row" id="stat-cpu2-model"><span class="lbl">MODEL</span><span class="val">--</span></div>
+                <div class="stat-row" id="stat-cpu2-load"><span class="lbl">LOAD</span><span class="val">--%</span></div>
+                <div class="stat-row" id="stat-cpu2-freq"><span class="lbl">FREQ</span><span class="val">-- GHz</span></div>
+                <div class="stat-row" id="stat-cpu2-temp"><span class="lbl">TEMP</span><span class="val">--</span></div>
+                <div class="stat-row" id="stat-cpu2-power"><span class="lbl">POWER</span><span class="val">-- W</span></div>
+                <div class="stat-row" id="stat-cpu2-cores"><span class="lbl">CORES</span><span class="val">--</span></div>
+                <div class="core-grid-label">CORE UTILIZATION</div>
+                <div id="cpu-core-grid-2" class="core-grid core-grid-large"></div>
+                <div class="chart-label">CPU HISTORY</div>
+                <canvas id="cpu-history-chart" width="400" height="140"></canvas>
+              </div>
+            </div>
+
+            <!-- GPU Detail Panel -->
+            <div class="panel panel-detail" id="panel-gpu-detail" data-panel="gpu-detail">
+              <div class="panel-header">GPU DETAIL</div>
+              <div class="panel-body">
+                <div class="stat-row" id="stat-gpu2-model"><span class="lbl">MODEL</span><span class="val">--</span></div>
+                <div class="stat-row" id="stat-gpu2-driver"><span class="lbl">DRIVER</span><span class="val">--</span></div>
+                <div class="stat-row" id="stat-gpu2-usage"><span class="lbl">USAGE</span><span class="val">--%</span></div>
+                <div class="stat-row" id="stat-gpu2-temp"><span class="lbl">TEMP</span><span class="val">--</span></div>
+                <div class="stat-row" id="stat-gpu2-fan"><span class="lbl">FAN</span><span class="val">--%</span></div>
+                <div class="stat-row" id="stat-gpu2-memclk"><span class="lbl">MEM CLK</span><span class="val">-- MHz</span></div>
+                <div class="vram-label">VRAM</div>
+                <div id="vram-fuel-bar-2" class="fuel-bar"></div>
+                <div id="vram-text-2" class="fuel-text">-- / -- MiB</div>
+                <div class="thermal-label">THERMAL</div>
+                <div id="gpu-thermal-strip-2" class="thermal-strip"><div class="thermal-fill"></div></div>
+                <div class="chart-label">GPU HISTORY</div>
+                <canvas id="gpu-history-chart" width="400" height="140"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ Page 3: System ═══ -->
+        <div class="page" id="page-system">
+          <div id="system-grid">
+            <!-- Network Wide Panel -->
+            <div class="panel panel-detail panel-wide" id="panel-network-detail" data-panel="network-detail">
+              <div class="panel-header">NETWORK</div>
+              <div class="panel-body">
+                <div class="net-stats-row">
+                  <div class="stat-row" id="stat-net2-ip"><span class="lbl">IP</span><span class="val">--</span></div>
+                  <div class="stat-row" id="stat-net2-type"><span class="lbl">TYPE</span><span class="val">--</span></div>
+                  <div class="stat-row" id="stat-net2-down"><span class="lbl">DOWN</span><span class="val">-- MiB/s</span></div>
+                  <div class="stat-row" id="stat-net2-up"><span class="lbl">UP</span><span class="val">-- MiB/s</span></div>
+                </div>
+                <canvas id="net-waveform-2" width="800" height="160"></canvas>
+              </div>
+            </div>
+
+            <!-- Memory Detail Panel -->
+            <div class="panel panel-detail" id="panel-memory-detail" data-panel="memory-detail">
+              <div class="panel-header">MEMORY</div>
+              <div class="panel-body">
+                <div class="stat-row" id="stat-mem2-ram"><span class="lbl">RAM</span><span class="val">-- / --</span></div>
+                <div class="stat-row" id="stat-mem2-pct"><span class="lbl">USED</span><span class="val">--%</span></div>
+                <div class="stat-row" id="stat-mem2-free"><span class="lbl">FREE</span><span class="val">--</span></div>
+                <div class="stat-row" id="stat-mem2-swap"><span class="lbl">SWAP</span><span class="val">-- / --</span></div>
+                <div class="stat-row" id="stat-mem2-loadavg"><span class="lbl">LOAD</span><span class="val">--</span></div>
+                <div class="stat-row" id="stat-mem2-procs"><span class="lbl">PROCS</span><span class="val">--</span></div>
+              </div>
+            </div>
+
+            <!-- Storage Detail Panel -->
+            <div class="panel panel-detail" id="panel-storage-detail" data-panel="storage-detail">
+              <div class="panel-header">STORAGE</div>
+              <div class="panel-body">
+                <div class="stat-row" id="stat-storage2-root"><span class="lbl">/</span><span class="val">-- / --</span></div>
+                <div class="stat-row" id="stat-storage2-home"><span class="lbl">/home</span><span class="val">-- / --</span></div>
+                <div class="stat-row" id="stat-storage2-cave"><span class="lbl">/cave</span><span class="val">-- / --</span></div>
+                <div class="stat-row" id="stat-storage2-lake"><span class="lbl">/lake</span><span class="val">-- / --</span></div>
+                <div class="stat-row" id="stat-disk2-read"><span class="lbl">READ</span><span class="val">-- MiB/s</span></div>
+                <div class="stat-row" id="stat-disk2-write"><span class="lbl">WRITE</span><span class="val">-- MiB/s</span></div>
+              </div>
+            </div>
+
+            <!-- Processes Detail Panel -->
+            <div class="panel panel-detail" id="panel-procs-detail" data-panel="procs-detail">
+              <div class="panel-header">PROCESSES</div>
+              <div class="panel-body">
+                <div class="stat-row" id="stat-procs2-total"><span class="lbl">TOTAL</span><span class="val">--</span></div>
+                <div class="stat-row" id="stat-procs2-running"><span class="lbl">RUNNING</span><span class="val">--</span></div>
+                <div class="stat-row" id="stat-procs2-threads"><span class="lbl">THREADS</span><span class="val">--</span></div>
+                <div class="stat-row" id="stat-procs2-loadavg"><span class="lbl">LOAD AVG</span><span class="val">--</span></div>
+                <div class="docker-section">
+                  <div class="process-feed-label">DOCKER <span id="docker-count-2" class="docker-count-inline">--</span></div>
+                  <div id="docker-manifest-2" class="docker-manifest"></div>
+                </div>
+                <div class="process-section">
+                  <div class="process-feed-label">TOP PROCESSES</div>
+                  <div id="process-feed-2" class="process-feed"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
 
-    <!-- Panel grid: 3 columns x 2 rows -->
-    <div id="panel-grid">
-      <!-- CPU Panel -->
-      <div class="panel" id="panel-cpu">
-        <div class="panel-header">CPU</div>
-        <div class="panel-body">
-          <div class="stat-row" id="stat-cpu-model"><span class="lbl">MODEL</span><span class="val">--</span></div>
-          <div class="stat-row" id="stat-cpu-load"><span class="lbl">LOAD</span><span class="val">--%</span></div>
-          <div class="stat-row" id="stat-cpu-freq"><span class="lbl">FREQ</span><span class="val">-- GHz</span></div>
-          <div class="stat-row" id="stat-cpu-temp"><span class="lbl">TEMP</span><span class="val">--</span></div>
-          <div class="core-grid-label">CORE UTILIZATION</div>
-          <div id="cpu-core-grid" class="core-grid"></div>
-        </div>
-      </div>
+    <!-- Navigation dots -->
+    <div id="nav-dots">
+      <button class="nav-dot active" data-page="0" title="Overview">
+        <span class="dot-ring"></span>
+      </button>
+      <button class="nav-dot" data-page="1" title="Compute">
+        <span class="dot-ring"></span>
+      </button>
+      <button class="nav-dot" data-page="2" title="System">
+        <span class="dot-ring"></span>
+      </button>
+    </div>
 
-      <!-- Memory Panel -->
-      <div class="panel" id="panel-memory">
-        <div class="panel-header">MEMORY</div>
-        <div class="panel-body">
-          <div class="stat-row" id="stat-ram"><span class="lbl">RAM</span><span class="val">-- / --</span></div>
-          <div class="stat-row" id="stat-ram-pct"><span class="lbl">USED</span><span class="val">--%</span></div>
-          <div class="stat-row" id="stat-ram-free"><span class="lbl">FREE</span><span class="val">--</span></div>
-          <div class="stat-row" id="stat-swap"><span class="lbl">SWAP</span><span class="val">-- / --</span></div>
-          <div class="stat-row" id="stat-loadavg"><span class="lbl">LOAD</span><span class="val">--</span></div>
-          <div class="stat-row" id="stat-procs"><span class="lbl">PROCS</span><span class="val">--</span></div>
-        </div>
-      </div>
-
-      <!-- Storage Panel -->
-      <div class="panel" id="panel-storage">
-        <div class="panel-header">STORAGE</div>
-        <div class="panel-body">
-          <div class="stat-row" id="stat-storage-root"><span class="lbl">/</span><span class="val">-- / --</span></div>
-          <div class="stat-row" id="stat-storage-home"><span class="lbl">/home</span><span class="val">-- / --</span></div>
-          <div class="stat-row" id="stat-storage-cave"><span class="lbl">/cave</span><span class="val">-- / --</span></div>
-          <div class="stat-row" id="stat-storage-lake"><span class="lbl">/lake</span><span class="val">-- / --</span></div>
-          <div class="stat-row" id="stat-disk-read"><span class="lbl">READ</span><span class="val">-- MiB/s</span></div>
-          <div class="stat-row" id="stat-disk-write"><span class="lbl">WRITE</span><span class="val">-- MiB/s</span></div>
-        </div>
-      </div>
-
-      <!-- GPU Panel -->
-      <div class="panel" id="panel-gpu">
-        <div class="panel-header">GPU</div>
-        <div class="panel-body">
-          <div class="stat-row" id="stat-gpu-model"><span class="lbl">MODEL</span><span class="val">--</span></div>
-          <div class="stat-row" id="stat-gpu-driver"><span class="lbl">DRIVER</span><span class="val">--</span></div>
-          <div class="stat-row" id="stat-gpu-usage"><span class="lbl">USAGE</span><span class="val">--%</span></div>
-          <div class="stat-row" id="stat-gpu-temp"><span class="lbl">TEMP</span><span class="val">--</span></div>
-          <div class="stat-row" id="stat-gpu-fan"><span class="lbl">FAN</span><span class="val">--%</span></div>
-          <div class="vram-label">VRAM</div>
-          <div id="vram-fuel-bar" class="fuel-bar"></div>
-          <div id="vram-text" class="fuel-text">-- / -- MiB</div>
-          <div class="thermal-label">THERMAL</div>
-          <div id="gpu-thermal-strip" class="thermal-strip"><div class="thermal-fill"></div></div>
-        </div>
-      </div>
-
-      <!-- Network Panel -->
-      <div class="panel" id="panel-network">
-        <div class="panel-header">NETWORK</div>
-        <div class="panel-body">
-          <div class="stat-row" id="stat-net-ip"><span class="lbl">IP</span><span class="val">--</span></div>
-          <div class="stat-row" id="stat-net-type"><span class="lbl">TYPE</span><span class="val">--</span></div>
-          <div class="stat-row" id="stat-net-down"><span class="lbl">DOWN</span><span class="val">-- MiB/s</span></div>
-          <div class="stat-row" id="stat-net-up"><span class="lbl">UP</span><span class="val">-- MiB/s</span></div>
-          <canvas id="net-waveform" width="340" height="120"></canvas>
-        </div>
-      </div>
-
-      <!-- Docker Panel -->
-      <div class="panel" id="panel-docker">
-        <div class="panel-header">PROCESSES</div>
-        <div class="panel-body">
-          <div class="docker-section">
-            <div class="process-feed-label">ACTIVE DOCKER CONTAINERS <span id="docker-count" class="docker-count-inline">--</span></div>
-            <div id="docker-manifest" class="docker-manifest"></div>
-          </div>
-          <div class="process-section">
-            <div class="process-feed-label">TOP PROCESSES</div>
-            <div id="process-feed" class="process-feed"></div>
-          </div>
-        </div>
+    <!-- Expand overlay -->
+    <div id="expand-overlay" class="hidden">
+      <div id="expand-content">
+        <button id="expand-close">&times;</button>
+        <div id="expand-inner"></div>
       </div>
     </div>
 

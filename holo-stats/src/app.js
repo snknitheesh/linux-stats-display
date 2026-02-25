@@ -244,19 +244,26 @@ class BackgroundScene {
 // ─── Color Interpolation (cyan -> amber -> magenta) ───
 function valueToColor(t) {
   t = Math.max(0, Math.min(1, t));
-  if (t < 0.5) {
-    const p = t / 0.5;
-    // Cyan (#00F0FF) -> Amber (#FFB800)
+  if (t < 0.4) {
+    const p = t / 0.4;
+    // Green (#00FF88) -> Amber (#FFB800)
     const r = Math.round(0 + p * 255);
-    const g = Math.round(240 - p * 56);
-    const b = Math.round(255 - p * 255);
+    const g = Math.round(255 - p * 71);
+    const b = Math.round(136 - p * 136);
+    return `rgb(${r},${g},${b})`;
+  } else if (t < 0.7) {
+    const p = (t - 0.4) / 0.3;
+    // Amber (#FFB800) -> Orange (#FF5500)
+    const r = 255;
+    const g = Math.round(184 - p * 99);
+    const b = Math.round(0);
     return `rgb(${r},${g},${b})`;
   } else {
-    const p = (t - 0.5) / 0.5;
-    // Amber (#FFB800) -> Magenta (#FF2D6A)
+    const p = (t - 0.7) / 0.3;
+    // Orange (#FF5500) -> Red (#FF2233)
     const r = 255;
-    const g = Math.round(184 - p * 139);
-    const b = Math.round(0 + p * 106);
+    const g = Math.round(85 - p * 51);
+    const b = Math.round(0 + p * 51);
     return `rgb(${r},${g},${b})`;
   }
 }
@@ -267,8 +274,8 @@ class HexArcMeter {
     this.gauges = [];
     document.querySelectorAll('.hex-gauge').forEach((el, i) => {
       const svg = el.querySelector('.hex-svg');
-      const size = 100;
-      const cx = size / 2, cy = size / 2, r = 38;
+      const size = 120;
+      const cx = size / 2, cy = size / 2, r = 46;
 
       // Build hex path
       const pts = [];
@@ -289,7 +296,7 @@ class HexArcMeter {
       const bgPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
       bgPath.setAttribute('d', pathD);
       bgPath.setAttribute('fill', 'none');
-      bgPath.setAttribute('stroke', 'rgba(0,240,255,0.3)');
+      bgPath.setAttribute('stroke', 'rgba(0,240,255,0.7)');
       bgPath.setAttribute('stroke-width', '2.5');
       svg.appendChild(bgPath);
 
@@ -302,7 +309,7 @@ class HexArcMeter {
         tick.setAttribute('y1', (cy + inner * Math.sin(a)).toFixed(2));
         tick.setAttribute('x2', (cx + outer * Math.cos(a)).toFixed(2));
         tick.setAttribute('y2', (cy + outer * Math.sin(a)).toFixed(2));
-        tick.setAttribute('stroke', 'rgba(0,240,255,0.5)');
+        tick.setAttribute('stroke', 'rgba(0,240,255,0.9)');
         tick.setAttribute('stroke-width', '1.5');
         svg.appendChild(tick);
       }
@@ -373,10 +380,9 @@ class CpuCoreGrid {
     this.cells.forEach((cell, i) => {
       const coreLoad = Math.min(1, Math.max(0, usage + (Math.random() - 0.5) * 0.3));
       const color = valueToColor(coreLoad);
-      const alpha = 0.1 + coreLoad * 0.7;
       cell.style.background = color;
-      cell.style.opacity = alpha;
-      cell.style.boxShadow = coreLoad > 0.5 ? `0 0 4px ${color}` : 'none';
+      cell.style.opacity = 0.5 + coreLoad * 0.5;
+      cell.style.boxShadow = coreLoad > 0.2 ? `0 0 ${6 + coreLoad * 10}px ${color}` : 'none';
     });
   }
 }
@@ -450,16 +456,16 @@ class NetworkWaveform {
     ctx.clearRect(0, 0, w, h);
 
     // Grid lines
-    ctx.strokeStyle = 'rgba(0,240,255,0.04)';
+    ctx.strokeStyle = 'rgba(0,240,255,0.12)';
     ctx.lineWidth = 1;
     for (let y = 0; y < h; y += 15) {
       ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
     }
 
     // Download trace (cyan)
-    this.drawTrace(this.historyDown, 'rgba(0,240,255,0.7)', 'rgba(0,240,255,0.08)');
+    this.drawTrace(this.historyDown, 'rgba(0,240,255,1)', 'rgba(0,240,255,0.18)');
     // Upload trace (magenta)
-    this.drawTrace(this.historyUp, 'rgba(255,45,106,0.6)', 'rgba(255,45,106,0.05)');
+    this.drawTrace(this.historyUp, 'rgba(255,51,85,1)', 'rgba(255,51,85,0.18)');
   }
 
   drawTrace(data, strokeColor, fillColor) {
@@ -491,6 +497,64 @@ class NetworkWaveform {
   }
 }
 
+// ─── HistoryChart: Rolling usage chart (like NetworkWaveform but single-value) ───
+class HistoryChart {
+  constructor(canvasId, maxSamples = 120) {
+    this.canvas = document.getElementById(canvasId);
+    this.ctx = this.canvas.getContext('2d');
+    this.history = new Array(maxSamples).fill(0);
+    this.maxSamples = maxSamples;
+  }
+
+  push(value) {
+    this.history.push(value);
+    if (this.history.length > this.maxSamples) this.history.shift();
+    this.draw();
+  }
+
+  draw() {
+    const { ctx, canvas, history } = this;
+    const w = canvas.width;
+    const h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+
+    // Grid lines
+    ctx.strokeStyle = 'rgba(0,240,255,0.12)';
+    ctx.lineWidth = 1;
+    for (let y = 0; y < h; y += 20) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+    }
+
+    // Draw usage trace
+    const step = w / (history.length - 1);
+    ctx.beginPath();
+    history.forEach((v, i) => {
+      const x = i * step;
+      const y = h - (v / 100) * (h - 4);
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+
+    // Glow stroke
+    ctx.strokeStyle = 'rgba(0,240,255,1)';
+    ctx.lineWidth = 2.5;
+    ctx.shadowColor = 'rgba(0,240,255,0.9)';
+    ctx.shadowBlur = 12;
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // Gradient fill
+    ctx.lineTo(w, h);
+    ctx.lineTo(0, h);
+    ctx.closePath();
+    const grad = ctx.createLinearGradient(0, 0, 0, h);
+    grad.addColorStop(0, 'rgba(0,240,255,0.35)');
+    grad.addColorStop(1, 'rgba(0,240,255,0.04)');
+    ctx.fillStyle = grad;
+    ctx.fill();
+  }
+}
+
 // ─── ProcessFeed ───
 class ProcessFeed {
   constructor(containerId) {
@@ -517,6 +581,142 @@ class DockerManifest {
   }
 }
 
+// ─── PageNavigator ───
+class PageNavigator {
+  constructor() {
+    this.track = document.getElementById('page-track');
+    this.dots = document.querySelectorAll('.nav-dot');
+    this.currentPage = 0;
+
+    // Nav dot clicks
+    this.dots.forEach(dot => {
+      dot.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const page = parseInt(dot.dataset.page);
+        this.goTo(page);
+      });
+    });
+
+    // Arrow keys
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') this.goTo(Math.min(2, this.currentPage + 1));
+      else if (e.key === 'ArrowLeft') this.goTo(Math.max(0, this.currentPage - 1));
+    });
+
+    // Scroll wheel (on document so it works through pointer-events: none)
+    let wheelCooldown = false;
+    document.addEventListener('wheel', (e) => {
+      if (wheelCooldown) return;
+      if (document.getElementById('expand-overlay') && !document.getElementById('expand-overlay').classList.contains('hidden')) return;
+      if (e.deltaY > 0 || e.deltaX > 0) this.goTo(Math.min(2, this.currentPage + 1));
+      else if (e.deltaY < 0 || e.deltaX < 0) this.goTo(Math.max(0, this.currentPage - 1));
+      wheelCooldown = true;
+      setTimeout(() => { wheelCooldown = false; }, 400);
+    }, { passive: true });
+
+    // Swipe gestures (on document)
+    let startX = 0;
+    let dragging = false;
+    document.addEventListener('pointerdown', (e) => {
+      if (e.target.closest('.panel') || e.target.closest('.topic-card') || e.target.closest('.nav-dot') ||
+          e.target.closest('#expand-overlay:not(.hidden)')) return;
+      startX = e.clientX;
+      dragging = true;
+    });
+    document.addEventListener('pointerup', (e) => {
+      if (!dragging) return;
+      dragging = false;
+      const dx = e.clientX - startX;
+      if (dx < -60) this.goTo(Math.min(2, this.currentPage + 1));
+      else if (dx > 60) this.goTo(Math.max(0, this.currentPage - 1));
+    });
+  }
+
+  goTo(page) {
+    this.currentPage = page;
+    this.track.dataset.active = page;
+    this.dots.forEach(d => d.classList.toggle('active', parseInt(d.dataset.page) === page));
+  }
+}
+
+// ─── PanelExpander ───
+class PanelExpander {
+  constructor() {
+    this.overlay = document.getElementById('expand-overlay');
+    this.inner = document.getElementById('expand-inner');
+    this.closeBtn = document.getElementById('expand-close');
+    this.isOpen = false;
+    this.sourcePanel = null;
+    this._refreshId = null;
+
+    // Click panels to expand
+    document.querySelectorAll('.panel').forEach(panel => {
+      panel.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!this.isOpen) this.expand(panel);
+      });
+    });
+
+    // Close on X button
+    this.closeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.collapse();
+    });
+
+    // Close on overlay background click
+    this.overlay.addEventListener('click', (e) => {
+      if (e.target === this.overlay) this.collapse();
+    });
+
+    // Close on Escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && this.isOpen) this.collapse();
+    });
+  }
+
+  _sync() {
+    if (!this.sourcePanel || !this.isOpen) return;
+    const header = this.sourcePanel.querySelector('.panel-header');
+    const body = this.sourcePanel.querySelector('.panel-body');
+    this.inner.innerHTML =
+      (header ? `<div class="panel-header">${header.textContent}</div>` : '') +
+      body.innerHTML;
+
+    // Copy canvas pixel data (innerHTML creates blank canvases)
+    const srcCanvases = body.querySelectorAll('canvas');
+    const dstCanvases = this.inner.querySelectorAll('canvas');
+    srcCanvases.forEach((src, i) => {
+      if (dstCanvases[i]) {
+        const dst = dstCanvases[i];
+        dst.width = src.width;
+        dst.height = src.height;
+        const ctx = dst.getContext('2d');
+        ctx.drawImage(src, 0, 0);
+      }
+    });
+  }
+
+  expand(panel) {
+    this.sourcePanel = panel;
+    this._sync();
+    this.overlay.classList.remove('hidden');
+    this.isOpen = true;
+    // Live-refresh from source panel every 500ms
+    this._refreshId = setInterval(() => this._sync(), 500);
+  }
+
+  collapse() {
+    this.overlay.classList.add('hidden');
+    this.isOpen = false;
+    this.sourcePanel = null;
+    if (this._refreshId) {
+      clearInterval(this._refreshId);
+      this._refreshId = null;
+    }
+    this.inner.innerHTML = '';
+  }
+}
+
 // ─── Uptime to MET format ───
 function uptimeToMET(uptimeStr) {
   if (!uptimeStr || uptimeStr === 'N/A') return 'T+00:00:00';
@@ -540,69 +740,141 @@ class HoloStatsApp {
     this.stats = null;
     this.glitchEl = document.getElementById('glitch-flash');
 
-    // Initialize widgets
+    // Initialize page 1 widgets
     this.hexMeter = new HexArcMeter();
-    this.coreGrid = new CpuCoreGrid('cpu-core-grid', 32);
-    this.fuelBar = new FuelBar('vram-fuel-bar', 20);
-    this.thermalStrip = new ThermalStrip('gpu-thermal-strip');
-    this.waveform = new NetworkWaveform('net-waveform');
-    this.processFeed = new ProcessFeed('process-feed');
-    this.dockerManifest = new DockerManifest('docker-manifest');
 
-    // Cache DOM elements
+    // Initialize page 2 widgets (Compute)
+    this.coreGrid2 = new CpuCoreGrid('cpu-core-grid-2', 32);
+    this.fuelBar2 = new FuelBar('vram-fuel-bar-2', 20);
+    this.thermalStrip2 = new ThermalStrip('gpu-thermal-strip-2');
+    this.cpuHistory = new HistoryChart('cpu-history-chart', 120);
+    this.gpuHistory = new HistoryChart('gpu-history-chart', 120);
+
+    // Initialize page 3 widgets (System)
+    this.waveform2 = new NetworkWaveform('net-waveform-2');
+    this.processFeed2 = new ProcessFeed('process-feed-2');
+    this.dockerManifest2 = new DockerManifest('docker-manifest-2');
+
+    // Initialize navigation and expander
+    this.pageNav = new PageNavigator();
+    this.panelExpander = new PanelExpander();
+
+    // Cache DOM elements for top bar
     this.el = {
       time: document.getElementById('time-display'),
       date: document.getElementById('date-display'),
       met: document.getElementById('met-display'),
       netStatus: document.getElementById('net-status'),
-      cpuModel: document.getElementById('stat-cpu-model'),
-      cpuLoad: document.getElementById('stat-cpu-load'),
-      cpuFreq: document.getElementById('stat-cpu-freq'),
-      cpuTemp: document.getElementById('stat-cpu-temp'),
-      ram: document.getElementById('stat-ram'),
-      ramPct: document.getElementById('stat-ram-pct'),
-      ramFree: document.getElementById('stat-ram-free'),
-      swap: document.getElementById('stat-swap'),
-      loadavg: document.getElementById('stat-loadavg'),
-      procs: document.getElementById('stat-procs'),
-      storageRoot: document.getElementById('stat-storage-root'),
-      storageHome: document.getElementById('stat-storage-home'),
-      storageCave: document.getElementById('stat-storage-cave'),
-      storageLake: document.getElementById('stat-storage-lake'),
-      diskRead: document.getElementById('stat-disk-read'),
-      diskWrite: document.getElementById('stat-disk-write'),
-      gpuModel: document.getElementById('stat-gpu-model'),
-      gpuDriver: document.getElementById('stat-gpu-driver'),
-      gpuUsage: document.getElementById('stat-gpu-usage'),
-      gpuTemp: document.getElementById('stat-gpu-temp'),
-      gpuFan: document.getElementById('stat-gpu-fan'),
-      vramText: document.getElementById('vram-text'),
-      netIp: document.getElementById('stat-net-ip'),
-      netType: document.getElementById('stat-net-type'),
-      netDown: document.getElementById('stat-net-down'),
-      netUp: document.getElementById('stat-net-up'),
-      dockerActive: document.getElementById('stat-docker-active'),
     };
 
-    // Stats injection from Python backend
+
+    // Cache DOM elements for page 2 (Compute)
+    this.el2 = {
+      cpuModel: document.getElementById('stat-cpu2-model'),
+      cpuLoad: document.getElementById('stat-cpu2-load'),
+      cpuFreq: document.getElementById('stat-cpu2-freq'),
+      cpuTemp: document.getElementById('stat-cpu2-temp'),
+      cpuPower: document.getElementById('stat-cpu2-power'),
+      cpuCores: document.getElementById('stat-cpu2-cores'),
+      gpuModel: document.getElementById('stat-gpu2-model'),
+      gpuDriver: document.getElementById('stat-gpu2-driver'),
+      gpuUsage: document.getElementById('stat-gpu2-usage'),
+      gpuTemp: document.getElementById('stat-gpu2-temp'),
+      gpuFan: document.getElementById('stat-gpu2-fan'),
+      gpuMemClk: document.getElementById('stat-gpu2-memclk'),
+      vramText: document.getElementById('vram-text-2'),
+    };
+
+    // Cache DOM elements for page 3 (System)
+    this.el3 = {
+      netIp: document.getElementById('stat-net2-ip'),
+      netType: document.getElementById('stat-net2-type'),
+      netDown: document.getElementById('stat-net2-down'),
+      netUp: document.getElementById('stat-net2-up'),
+      memRam: document.getElementById('stat-mem2-ram'),
+      memPct: document.getElementById('stat-mem2-pct'),
+      memFree: document.getElementById('stat-mem2-free'),
+      memSwap: document.getElementById('stat-mem2-swap'),
+      memLoadavg: document.getElementById('stat-mem2-loadavg'),
+      memProcs: document.getElementById('stat-mem2-procs'),
+      storageRoot: document.getElementById('stat-storage2-root'),
+      storageHome: document.getElementById('stat-storage2-home'),
+      storageCave: document.getElementById('stat-storage2-cave'),
+      storageLake: document.getElementById('stat-storage2-lake'),
+      diskRead: document.getElementById('stat-disk2-read'),
+      diskWrite: document.getElementById('stat-disk2-write'),
+      procsTotal: document.getElementById('stat-procs2-total'),
+      procsRunning: document.getElementById('stat-procs2-running'),
+      procsThreads: document.getElementById('stat-procs2-threads'),
+      procsLoadavg: document.getElementById('stat-procs2-loadavg'),
+    };
+
+    // Stats injection from Python backend (GTK/WebKit)
     window.updateStats = (jsonStr) => {
       try {
         const data = typeof jsonStr === 'string' ? JSON.parse(jsonStr) : jsonStr;
-        this.stats = data;
-        this.updateGauges(data);
-        this.updatePanels(data);
-        this.updateWidgets(data);
-        // Drive background intensity from average CPU+GPU load
-        const avgLoad = ((data.cpu.usage || 0) + (data.gpu.usage || 0)) / 200;
-        this.bg.setIntensity(avgLoad);
+        this.onStatsUpdate(data);
       } catch (e) {
         console.error('Stats parse error:', e);
       }
     };
 
+    // Electron IPC stats path
+    if (window.statsAPI && window.statsAPI.onStats) {
+      window.statsAPI.onStats((data) => {
+        this.onStatsUpdate(data);
+      });
+    }
+
+    // Topic card click → navigate to detail page
+    document.querySelectorAll('.topic-card').forEach(card => {
+      card.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const page = parseInt(card.dataset.target);
+        this.pageNav.goTo(page);
+      });
+    });
+
+    // Mouse-event forwarding for Electron (transparent pass-through)
+    this.setupMouseForwarding();
+
     this.updateTime();
     setInterval(() => this.updateTime(), 1000);
     this.scheduleGlitch();
+  }
+
+  setupMouseForwarding() {
+    if (!window.statsAPI || !window.statsAPI.setIgnoreMouse) return;
+
+    document.addEventListener('mousemove', (e) => {
+      const el = document.elementFromPoint(e.clientX, e.clientY);
+      const isInteractive = el && (
+        el.closest('.panel') ||
+        el.closest('.topic-card') ||
+        el.closest('.nav-dot') ||
+        el.closest('#expand-overlay:not(.hidden)') ||
+        el.closest('#expand-close')
+      );
+      window.statsAPI.setIgnoreMouse(!isInteractive);
+    });
+  }
+
+  onStatsUpdate(data) {
+    this.stats = data;
+    this.updateGauges(data);
+    this.updateDetailPages(data);
+
+    // Top bar
+    const el = this.el;
+    if (el.met) el.met.textContent = uptimeToMET(data.system.uptime);
+    if (el.netStatus) {
+      el.netStatus.textContent = data.network.type;
+      el.netStatus.style.color = data.network.type === 'Disconnected' ? '#FF2D6A' : '#00FF88';
+    }
+
+    // Drive background intensity from average CPU+GPU load
+    const avgLoad = ((data.cpu.usage || 0) + (data.gpu.usage || 0)) / 200;
+    this.bg.setIntensity(avgLoad);
   }
 
   scheduleGlitch() {
@@ -635,14 +907,13 @@ class HoloStatsApp {
       s.gpu.usage / 100,
       cpuTempNum / 100,
       s.gpu.temp / 100,
-      s.cpu.power / cpuPwrLimit,
       s.gpu.power / gpuPwrLimit,
     ];
     const displays = [
       `${s.cpu.usage}`, `${s.memory.percent}`,
       `${s.gpu.usage}`,
       `${Math.round(cpuTempNum)}`, `${s.gpu.temp}`,
-      `${s.cpu.power}`, `${s.gpu.power.toFixed(0)}`,
+      `${s.gpu.power.toFixed(0)}`,
     ];
 
     values.forEach((v, i) => {
@@ -651,8 +922,7 @@ class HoloStatsApp {
     });
   }
 
-  updatePanels(s) {
-    const el = this.el;
+  updateDetailPages(s) {
     const fmt = (bytes) => {
       if (bytes > 1e12) return (bytes / 1e12).toFixed(1) + ' TiB';
       if (bytes > 1e9) return (bytes / 1e9).toFixed(1) + ' GiB';
@@ -665,63 +935,63 @@ class HoloStatsApp {
       elem.innerHTML = `<span class="lbl">${label}</span><span class="val ${cls || ''}">${val}</span>`;
     };
 
-    // CPU Panel
-    setRow(el.cpuModel, 'MODEL', s.cpu.model);
-    setRow(el.cpuLoad, 'LOAD', `${s.cpu.usage}%`, 'val-cyan');
-    setRow(el.cpuFreq, 'FREQ', `${s.cpu.freq} GHz`);
-    setRow(el.cpuTemp, 'TEMP', s.cpu.temp, 'val-amber');
+    // ── Page 2: Compute ──
+    const e2 = this.el2;
+    setRow(e2.cpuModel, 'MODEL', s.cpu.model);
+    setRow(e2.cpuLoad, 'LOAD', `${s.cpu.usage}%`, 'val-cyan');
+    setRow(e2.cpuFreq, 'FREQ', `${s.cpu.freq} GHz`);
+    setRow(e2.cpuTemp, 'TEMP', s.cpu.temp, 'val-amber');
+    setRow(e2.cpuPower, 'POWER', `${s.cpu.power} W`, 'val-amber');
+    setRow(e2.cpuCores, 'CORES', s.cpu.cores);
 
-    // Memory Panel
-    setRow(el.ram, 'RAM', `${fmt(s.memory.used)} / ${fmt(s.memory.total)}`);
-    setRow(el.ramPct, 'USED', `${s.memory.percent}%`, 'val-cyan');
-    setRow(el.ramFree, 'FREE', fmt(s.memory.free), 'val-green');
-    setRow(el.swap, 'SWAP', `${fmt(s.memory.swapUsed)} / ${fmt(s.memory.swapTotal)}`);
-    setRow(el.loadavg, 'LOAD', s.system.loadavg);
-    setRow(el.procs, 'PROCS', `${s.system.totalProcs} / ${s.system.runningProcs} run`);
+    setRow(e2.gpuModel, 'MODEL', s.gpu.name);
+    setRow(e2.gpuDriver, 'DRIVER', s.gpu.driver);
+    setRow(e2.gpuUsage, 'USAGE', `${s.gpu.usage}%`, 'val-cyan');
+    setRow(e2.gpuTemp, 'TEMP', `${s.gpu.temp}°C`, 'val-amber');
+    setRow(e2.gpuFan, 'FAN', `${s.gpu.fan}%`);
+    setRow(e2.gpuMemClk, 'MEM CLK', `${s.gpu.memClk} MHz`);
+    if (e2.vramText) e2.vramText.textContent = `${s.gpu.vramUsed} / ${s.gpu.vramTotal} MiB`;
 
-    // Storage Panel
-    setRow(el.storageRoot, '/', `${fmt(s.storage.root.used)} / ${fmt(s.storage.root.total)}  ${s.storage.root.percent}%`);
-    setRow(el.storageHome, '/home', `${fmt(s.storage.home.used)} / ${fmt(s.storage.home.total)}  ${s.storage.home.percent}%`);
-    setRow(el.storageCave, '/cave', `${fmt(s.storage.cave.used)} / ${fmt(s.storage.cave.total)}  ${s.storage.cave.percent}%`);
-    setRow(el.storageLake, '/lake', `${fmt(s.storage.lake.used)} / ${fmt(s.storage.lake.total)}  ${s.storage.lake.percent}%`);
+    this.coreGrid2.update(s.cpu.usage);
+    this.fuelBar2.update(s.gpu.vramUsed, s.gpu.vramTotal);
+    this.thermalStrip2.update(s.gpu.temp);
+    this.cpuHistory.push(s.cpu.usage);
+    this.gpuHistory.push(s.gpu.usage);
+
+    // ── Page 3: System ──
+    const e3 = this.el3;
+    setRow(e3.netIp, 'IP', s.network.ip);
+    setRow(e3.netType, 'TYPE', s.network.type);
+    setRow(e3.netDown, 'DOWN', `${(s.network.down / 1024).toFixed(2)} MiB/s`, 'val-green');
+    setRow(e3.netUp, 'UP', `${(s.network.up / 1024).toFixed(2)} MiB/s`, 'val-magenta');
+
+    setRow(e3.memRam, 'RAM', `${fmt(s.memory.used)} / ${fmt(s.memory.total)}`);
+    setRow(e3.memPct, 'USED', `${s.memory.percent}%`, 'val-cyan');
+    setRow(e3.memFree, 'FREE', fmt(s.memory.free), 'val-green');
+    setRow(e3.memSwap, 'SWAP', `${fmt(s.memory.swapUsed)} / ${fmt(s.memory.swapTotal)}`);
+    setRow(e3.memLoadavg, 'LOAD', s.system.loadavg);
+    setRow(e3.memProcs, 'PROCS', `${s.system.totalProcs} / ${s.system.runningProcs} run`);
+
+    setRow(e3.storageRoot, '/', `${fmt(s.storage.root.used)} / ${fmt(s.storage.root.total)}  ${s.storage.root.percent}%`);
+    setRow(e3.storageHome, '/home', `${fmt(s.storage.home.used)} / ${fmt(s.storage.home.total)}  ${s.storage.home.percent}%`);
+    setRow(e3.storageCave, '/cave', `${fmt(s.storage.cave.used)} / ${fmt(s.storage.cave.total)}  ${s.storage.cave.percent}%`);
+    setRow(e3.storageLake, '/lake', `${fmt(s.storage.lake.used)} / ${fmt(s.storage.lake.total)}  ${s.storage.lake.percent}%`);
     if (s.diskIO) {
-      setRow(el.diskRead, 'READ', `${(s.diskIO.read / 1024).toFixed(2)} MiB/s`, 'val-green');
-      setRow(el.diskWrite, 'WRITE', `${(s.diskIO.write / 1024).toFixed(2)} MiB/s`, 'val-magenta');
+      setRow(e3.diskRead, 'READ', `${(s.diskIO.read / 1024).toFixed(2)} MiB/s`, 'val-green');
+      setRow(e3.diskWrite, 'WRITE', `${(s.diskIO.write / 1024).toFixed(2)} MiB/s`, 'val-magenta');
     }
 
-    // GPU Panel
-    setRow(el.gpuModel, 'MODEL', s.gpu.name);
-    setRow(el.gpuDriver, 'DRIVER', s.gpu.driver);
-    setRow(el.gpuUsage, 'USAGE', `${s.gpu.usage}%`, 'val-cyan');
-    setRow(el.gpuTemp, 'TEMP', `${s.gpu.temp}°C`, 'val-amber');
-    setRow(el.gpuFan, 'FAN', `${s.gpu.fan}%`);
-    if (el.vramText) el.vramText.textContent = `${s.gpu.vramUsed} / ${s.gpu.vramTotal} MiB`;
+    setRow(e3.procsTotal, 'TOTAL', s.system.totalProcs);
+    setRow(e3.procsRunning, 'RUNNING', s.system.runningProcs, 'val-green');
+    setRow(e3.procsThreads, 'THREADS', s.system.threads);
+    setRow(e3.procsLoadavg, 'LOAD AVG', s.system.loadavg);
 
-    // Network Panel
-    setRow(el.netIp, 'IP', s.network.ip);
-    setRow(el.netType, 'TYPE', s.network.type);
-    setRow(el.netDown, 'DOWN', `${(s.network.down / 1024).toFixed(2)} MiB/s`, 'val-green');
-    setRow(el.netUp, 'UP', `${(s.network.up / 1024).toFixed(2)} MiB/s`, 'val-magenta');
+    const dockCount2 = document.getElementById('docker-count-2');
+    if (dockCount2) dockCount2.textContent = s.docker.count;
 
-    // Docker Panel
-    const dockCount = document.getElementById('docker-count');
-    if (dockCount) { dockCount.textContent = s.docker.count; }
-
-    // Top bar
-    if (el.met) el.met.textContent = uptimeToMET(s.system.uptime);
-    if (el.netStatus) {
-      el.netStatus.textContent = s.network.type;
-      el.netStatus.style.color = s.network.type === 'Disconnected' ? '#FF2D6A' : '#00FF88';
-    }
-  }
-
-  updateWidgets(s) {
-    this.coreGrid.update(s.cpu.usage);
-    this.fuelBar.update(s.gpu.vramUsed, s.gpu.vramTotal);
-    this.thermalStrip.update(s.gpu.temp);
-    this.waveform.push(s.network.down, s.network.up);
-    this.processFeed.update(s.cpu.top || []);
-    this.dockerManifest.update(s.docker.names || []);
+    this.waveform2.push(s.network.down, s.network.up);
+    this.processFeed2.update(s.cpu.top || []);
+    this.dockerManifest2.update(s.docker.names || []);
   }
 }
 

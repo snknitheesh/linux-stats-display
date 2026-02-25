@@ -34,8 +34,6 @@ app.whenReady().then(() => {
       skipTaskbar: true,
       hasShadow: false,
       resizable: false,
-      focusable: false,
-      type: 'desktop',
       webPreferences: {
         preload: path.join(__dirname, 'preload.js'),
         contextIsolation: true,
@@ -43,8 +41,15 @@ app.whenReady().then(() => {
       },
     });
 
-    mainWindow.setIgnoreMouseEvents(true);
+    mainWindow.setIgnoreMouseEvents(true, { forward: true });
     mainWindow.setAlwaysOnTop(false);
+
+    // Toggle mouse events from renderer (interactive elements vs transparent pass-through)
+    ipcMain.on('set-ignore-mouse', (_event, ignore) => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.setIgnoreMouseEvents(ignore, { forward: true });
+      }
+    });
 
     const indexPath = path.join(__dirname, 'dist', 'index.html');
     mainWindow.loadFile(indexPath);
